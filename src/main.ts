@@ -192,6 +192,7 @@ async function handleBackup(event: SubmitEvent) {
     downloadBlob(blob, `quarter-sheet-backup-${new Date().toISOString().slice(0, 10)}.mtdledger`);
     ($('#backup-passphrase') as HTMLInputElement).value = '';
     localStorage.setItem('quarter-sheet:last-backup', new Date().toISOString());
+    if (document.documentElement.classList.contains('supporter')) setSupporter(true);
     showToast('Encrypted backup downloaded. Keep its passphrase safe.');
   } catch { $('#backup-error').textContent = 'The backup could not be created. Try again.'; }
 }
@@ -218,7 +219,9 @@ const billingBase = import.meta.env.VITE_BILLING_BASE || 'https://pilot-api.soci
 
 function setSupporter(active: boolean, message?: string) {
   document.documentElement.classList.toggle('supporter', active);
-  $('#license-status').textContent = message ?? (active ? 'Supporter unlock active on this device.' : 'No supporter license on this device.');
+  const lastBackup = localStorage.getItem('quarter-sheet:last-backup');
+  const backupDue = !lastBackup || Date.now() - new Date(lastBackup).getTime() > 30 * 86_400_000;
+  $('#license-status').textContent = message ?? (active ? `Supporter unlock active.${backupDue ? ' Your encrypted backup is due.' : ' Your recent backup is noted.'}` : 'No supporter license on this device.');
   $('#buy-license').textContent = active ? 'Supporter unlock active' : 'Buy supporter unlock';
 }
 
@@ -250,21 +253,21 @@ async function initLicense() {
 
 function setupServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
+  let updateRequested = false;
   navigator.serviceWorker.register('/sw.js').then((registration) => {
-    const announce = () => showToast('A fresh version is ready.', { label: 'Update now', run: () => registration.waiting?.postMessage({ type: 'SKIP_WAITING' }) }, 30_000);
+    const announce = () => showToast('A fresh version is ready.', { label: 'Update now', run: () => { updateRequested = true; registration.waiting?.postMessage({ type: 'SKIP_WAITING' }); } }, 30_000);
     if (registration.waiting) announce();
     registration.addEventListener('updatefound', () => registration.installing?.addEventListener('statechange', () => {
       if (registration.installing?.state === 'installed' && navigator.serviceWorker.controller) announce();
     }));
   }).catch(() => { /* The ledger remains usable without installation support. */ });
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => { if (!refreshing) { refreshing = true; location.reload(); } });
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (updateRequested) location.reload(); });
 }
 
 function bindEvents() {
   $('#tax-year').addEventListener('change', (event) => { year = Number((event.target as HTMLSelectElement).value); localStorage.setItem('quarter-sheet:year', String(year)); quarterIndex = findCurrentQuarter(); render(); });
   $('#quarter-tabs').addEventListener('click', (event) => { const button = (event.target as Element).closest<HTMLButtonElement>('[data-quarter]'); if (button) { quarterIndex = Number(button.dataset.quarter); render(); } });
-  $('#quarter-tabs').addEventListener('keydown', (event) => { if (!['ArrowLeft', 'ArrowRight'].includes((event as KeyboardEvent).key)) return; const direction = (event as KeyboardEvent).key === 'ArrowRight' ? 1 : -1; quarterIndex = (quarterIndex + direction + 4) % 4; render(); document.querySelector<HTMLButtonElement>(`[data-quarter="${quarterIndex}"]`)?.focus(); });
+  $('#quarter-tabs').addEventListener('keydown', (event) => { if (!['ArrowLeft', 'ArrowRight'].includes((event as KeyboardEvent).key)) return; event.preventDefault(); const direction = (event as KeyboardEvent).key === 'ArrowRight' ? 1 : -1; const focused = Number((event.target as HTMLButtonElement).dataset.quarter); quarterIndex = (focused + direction + 4) % 4; render(); document.querySelector<HTMLButtonElement>(`[data-quarter="${quarterIndex}"]`)?.focus(); });
   $('#add-entry').addEventListener('click', () => openEntryDialog());
   $('#entry-form').addEventListener('submit', (event) => void handleEntrySubmit(event as SubmitEvent));
   document.querySelectorAll<HTMLInputElement>('input[name="entry-type"]').forEach((radio) => radio.addEventListener('change', () => categoryOptions(radio.value as EntryType)));
@@ -281,7 +284,14 @@ function bindEvents() {
   window.addEventListener('offline', updateConnection);
 }
 
-function updateConnection() { ($('#offline-banner') as HTMLElement).hidden = navigator.onLine; }
+async function updateConnection() {
+  let online = navigator.onLine;
+  if (online) {
+    try { await fetch('/manifest.webmanifest', { method: 'HEAD', cache: 'no-store' }); }
+    catch { online = false; }
+  }
+  ($('#offline-banner') as HTMLElement).hidden = online;
+}
 
 async function init() {
   renderYearOptions();

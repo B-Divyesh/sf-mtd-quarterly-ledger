@@ -214,7 +214,7 @@ code { color: var(--cyan); font: 12px var(--font-draft); }
 .row-actions { display: flex; justify-content: flex-end; gap: 10px; }
 .row-actions .danger-link { color: var(--danger); }
 
-.category-map { margin-top: 88px; content-visibility: auto; contain-intrinsic-size: 500px; }
+.category-map { margin-top: 88px; }
 details { border-block: 1px solid var(--line); }
 summary { min-height: 56px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; color: var(--cyan); font-family: var(--font-draft); }
 summary::after { content: "+"; font-size: 22px; }

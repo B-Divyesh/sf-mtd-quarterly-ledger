@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 test('logs a transaction and survives an offline reload', async ({ page, context }) => {
   await page.goto('/');
@@ -27,4 +28,15 @@ test('legal pages and keyboard quarter tabs are available', async ({ page }) => 
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Privacy notice');
   await page.goto('/terms/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Terms of use');
+});
+
+test('has no serious accessibility issues or load errors', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+  await page.goto('/');
+  await expect(page.locator('#ledger-state')).not.toContainText('Opening your local ledger');
+  const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+  expect(result.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+  expect(errors).toEqual([]);
 });
