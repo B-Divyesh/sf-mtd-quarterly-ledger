@@ -1,5 +1,23 @@
 # Handoff — Quarter sheet v1
 
+## Independent verification status — FAIL (27 August 2026)
+
+**Tested candidate:** `9304e2aede43b9f7904119820a14da40744557b5`
+
+**Tested deployment:** <https://mtd-quarterly-ledger.sociobot.in/>
+
+**Full report:** [.factory/verification.md](verification.md)
+
+The live deployment is an exact byte-for-byte match for all 22 files in the candidate `dist/` output, but it must **not** be handed off as release-ready.
+
+- **High:** A date outside the selected quarter is accepted despite the dialog's displayed min/max bounds, silently placing a record in another quarter.
+- **Medium:** A newly discovered service-worker update reaches `waiting` without showing the required in-session update toast; it is only announced after reload.
+- **Medium:** The public live checkout still links to `pilot-api.sociobot.in`, not production billing.
+- **Medium:** Live mobile Lighthouse performance was 88, below the required 90 (TBT 480 ms); A11y/best-practices/SEO were 100.
+- **Low:** deployment cache policy is only 30 seconds for hashed assets; CSP/frame/Permissions headers are absent; manifest is `application/octet-stream`.
+
+All locked install, unit, build and configured desktop/390px browser tests passed after installing the documented Playwright Chromium prerequisite. Offline persisted-data reload, keyboard focus, reduced motion, online axe serious/critical findings, export, encrypted backup/restore and parity were independently exercised. Product code was not modified during verification.
+
 ## Shipped
 
 - A production Vite + TypeScript PWA for UK sole traders to record income and expenses across the four 6 April–5 April tax-year quarters.
