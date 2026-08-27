@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Quarter sheet mark">
+  <rect width="64" height="64" rx="3" fill="#0d2941"/>
+  <path d="M8 8h48v48H8zM32 8v48M8 32h48" fill="none" stroke="#63d4f2" stroke-width="3"/>
+  <path d="M3 14h10M8 9v10M51 50h10M56 45v10" fill="none" stroke="#f4dda1" stroke-width="2"/>
+  <circle cx="32" cy="32" r="4" fill="#ff817a"/>
+</svg>

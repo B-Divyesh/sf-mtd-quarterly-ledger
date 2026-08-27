@@ -1,0 +1,9 @@
+{
+  "slug": "mtd-quarterly-ledger",
+  "title": "Simple quarterly income/expense ledger for UK sole traders under MTD",
+  "artifact_class": "pwa-offline",
+  "user": "UK sole traders who need digital quarterly records without a full accounting suite",
+  "smallest_useful_product": "A local-first PWA for transaction entry, HMRC-category quarterly totals, CSV/XLSX exports, receipt storage and encrypted backups. It does not submit to HMRC.",
+  "tax_year_start": "6 April",
+  "quarter_deadlines": ["7 August", "7 November", "7 February", "7 May"]
+}
