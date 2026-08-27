@@ -1,7 +1,7 @@
-const VERSION = 'quarter-sheet-v3';
+const VERSION = 'quarter-sheet-v4';
 const SHELL = `${VERSION}-shell`;
 const RUNTIME = `${VERSION}-runtime`;
-const PRECACHE = ['/', '/index.html', '/offline.html', '/manifest.webmanifest', '/icons/mark.svg', '/icons/icon-192.png', '/fonts/IBMPlexMono-Regular.woff2', '/assets/quarterly-drafting-desk.webp'];
+const PRECACHE = ['/', '/index.html', '/offline.html', '/manifest.webmanifest', '/icons/mark.svg', '/icons/icon-192.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
@@ -9,7 +9,7 @@ self.addEventListener('install', (event) => {
     await cache.addAll(PRECACHE);
     const page = await fetch('/index.html');
     const html = await page.text();
-    const builtAssets = [...html.matchAll(/(?:src|href)="(\/assets\/[^"?#]+)"/g)].map((match) => match[1]);
+    const builtAssets = [...html.matchAll(/(?:src|href|srcset)="(\/assets\/[^"?#\s]+)/g)].map((match) => match[1]);
     await cache.addAll([...new Set(builtAssets)]);
   })());
 });

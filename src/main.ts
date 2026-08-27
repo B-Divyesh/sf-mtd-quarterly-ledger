@@ -2,7 +2,8 @@ import './style.css';
 import { decryptBackup, encryptBackup } from './backup';
 import { deleteEntry, listEntries, replaceEntries, saveEntry } from './db';
 import { downloadBlob, toCsv } from './exports';
-import { amountToPence, categories, categoryById, formatDate, inQuarter, money, quartersFor, taxYearFor, type EntryType, type LedgerEntry } from './types';
+import { watchForServiceWorkerUpdate } from './service-worker-update';
+import { amountToPence, categories, categoryById, dateInQuarter, formatDate, inQuarter, money, quartersFor, taxYearFor, type EntryType, type LedgerEntry } from './types';
 
 const $ = <T extends Element>(selector: string) => document.querySelector<T>(selector)!;
 const currentYear = taxYearFor();
@@ -130,6 +131,11 @@ async function handleEntrySubmit(event: SubmitEvent) {
   const categoryId = ($('#entry-category') as HTMLSelectElement).value;
   const receiptFile = ($('#entry-receipt') as HTMLInputElement).files?.[0];
   if (!date) { error.textContent = 'Choose a date for this transaction.'; return; }
+  const quarter = selectedQuarter();
+  if (!dateInQuarter(date, quarter)) {
+    error.textContent = `Choose a date from ${formatDate(quarter.start)} to ${formatDate(quarter.end)} for this quarter.`;
+    return;
+  }
   if (!amount) { error.textContent = 'Enter a positive amount with no more than two decimal places.'; return; }
   if (!categoryById(categoryId) || categoryById(categoryId)?.type !== type) { error.textContent = 'Choose a category for this transaction type.'; return; }
   if (receiptFile && receiptFile.size > 5 * 1024 * 1024) { error.textContent = 'That receipt is over 5 MB. Choose a smaller image or PDF.'; return; }
@@ -215,7 +221,7 @@ async function handleRestore(event: SubmitEvent) {
 
 const licenseKey = 'sb_license:mtd-quarterly-ledger';
 const verdictKey = `${licenseKey}:verdict`;
-const billingBase = import.meta.env.VITE_BILLING_BASE || 'https://pilot-api.sociobot.in';
+const billingBase = import.meta.env.VITE_BILLING_BASE || 'https://api.sociobot.in';
 
 function setSupporter(active: boolean, message?: string) {
   document.documentElement.classList.toggle('supporter', active);
@@ -257,9 +263,7 @@ function setupServiceWorker() {
   navigator.serviceWorker.register('/sw.js').then((registration) => {
     const announce = () => showToast('A fresh version is ready.', { label: 'Update now', run: () => { updateRequested = true; registration.waiting?.postMessage({ type: 'SKIP_WAITING' }); } }, 30_000);
     if (registration.waiting) announce();
-    registration.addEventListener('updatefound', () => registration.installing?.addEventListener('statechange', () => {
-      if (registration.installing?.state === 'installed' && navigator.serviceWorker.controller) announce();
-    }));
+    watchForServiceWorkerUpdate(registration, () => Boolean(navigator.serviceWorker.controller), announce);
   }).catch(() => { /* The ledger remains usable without installation support. */ });
   navigator.serviceWorker.addEventListener('controllerchange', () => { if (updateRequested) location.reload(); });
 }
@@ -300,7 +304,10 @@ async function init() {
   bindEvents();
   updateConnection();
   try { entries = await listEntries(); render(); }
-  catch { $('#ledger-state').innerHTML = '<div class="error-state"><h3>Local storage is unavailable</h3><p>Your browser may be blocking site data. Allow storage for this site, then reload before entering records.</p><button class="button secondary" onclick="location.reload()">Reload ledger</button></div>'; }
+  catch {
+    $('#ledger-state').innerHTML = '<div class="error-state"><h3>Local storage is unavailable</h3><p>Your browser may be blocking site data. Allow storage for this site, then reload before entering records.</p><button class="button secondary" id="storage-reload" type="button">Reload ledger</button></div>';
+    $('#storage-reload').addEventListener('click', () => location.reload());
+  }
   void initLicense();
   setupServiceWorker();
 }

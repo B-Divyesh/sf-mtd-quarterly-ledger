@@ -7,7 +7,7 @@
     <meta name="description" content="A private, local-first quarterly income and expense ledger for UK sole traders." />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icons/mark.svg" type="image/svg+xml" />
-    <link rel="preload" href="/fonts/IBMPlexMono-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/src/assets/IBMPlexMono-Regular.woff2" as="font" type="font/woff2" crossorigin />
     <title>Quarter sheet — simple MTD ledger</title>
   </head>
   <body>
@@ -26,7 +26,10 @@
             <p class="lede">Log income and expenses, see each quarter’s totals, then export a clean file for your bridging or recognised software.</p>
             <p class="boundary-note"><strong>Records only.</strong> Quarter sheet does not submit updates to HMRC and does not give tax advice.</p>
           </div>
-          <img class="hero-art" src="/assets/quarterly-drafting-desk.webp" width="768" height="512" alt="A blueprint drafting desk with a ledger sheet divided into four measured sections" decoding="async" fetchpriority="high" />
+          <picture class="hero-art">
+            <source media="(max-width: 560px)" srcset="/src/assets/quarterly-drafting-desk-mobile.webp" width="420" height="280" />
+            <img src="/src/assets/quarterly-drafting-desk.webp" width="1200" height="800" alt="A blueprint drafting desk with a ledger sheet divided into four measured sections" decoding="async" loading="lazy" />
+          </picture>
         </section>
 
         <section class="control-bar" aria-label="Ledger controls">
@@ -73,14 +76,14 @@
 
         <section class="support-strip" aria-labelledby="support-heading">
           <div><p class="eyebrow">Keep the useful part free</p><h2 id="support-heading">Founding supporter</h2><p>£19 one time. Unlock the blueprint night palette badge and backup nudges, and help fund recognised HMRC submission work. Ledger, receipts, backups and every export stay free.</p></div>
-          <div class="support-actions"><p id="license-status">No supporter license on this device.</p><a class="button annotation" id="buy-license" href="https://pilot-api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout">Buy supporter unlock</a><button class="text-button" id="restore-license" type="button">Have a license? Restore it</button></div>
+          <div class="support-actions"><p id="license-status">No supporter license on this device.</p><a class="button annotation" id="buy-license" href="https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout">Buy supporter unlock</a><button class="text-button" id="restore-license" type="button">Have a license? Restore it</button></div>
         </section>
       </main>
       <footer><p>Quarter sheet stores everything in this browser. Generated artwork disclosed in the <a href="/privacy/">privacy notice</a>.</p><nav aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></nav></footer>
     </div>
 
     <dialog id="entry-dialog" aria-labelledby="entry-dialog-title">
-      <form method="dialog" id="entry-form" novalidate>
+      <form method="dialog" id="entry-form">
         <div class="dialog-head"><div><p class="plan-ref">LEDGER LINE</p><h2 id="entry-dialog-title">Add transaction</h2></div><button class="icon-button" type="button" data-close="entry-dialog" aria-label="Close transaction form">×</button></div>
         <input type="hidden" id="entry-id" />
         <fieldset><legend>Transaction type</legend><div class="segmented"><label><input type="radio" name="entry-type" value="income" checked /><span>Income</span></label><label><input type="radio" name="entry-type" value="expense" /><span>Expense</span></label></div></fieldset>

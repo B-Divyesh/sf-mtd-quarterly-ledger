@@ -30,6 +30,32 @@ test('legal pages and keyboard quarter tabs are available', async ({ page }) => 
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Terms of use');
 });
 
+test('refuses a date outside the selected quarter even when HTML bounds are bypassed', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#tax-year').selectOption('2026');
+  await page.getByRole('tab', { name: /Q1/ }).click();
+  await page.getByRole('button', { name: 'Add transaction' }).click();
+  // This emulates a script or a browser which does not enforce min/max. The
+  // app must still refuse 6 July, which is Q2's first day.
+  await page.locator('#entry-date').evaluate((input: HTMLInputElement) => { input.min = ''; input.max = ''; });
+  await page.getByLabel('Date').fill('2026-07-06');
+  await page.getByLabel('Amount (£)').fill('10.00');
+  await page.getByRole('button', { name: 'Save transaction' }).click();
+  await expect(page.locator('#entry-error')).toContainText('6 Apr 2026 to 5 Jul 2026');
+  await expect(page.locator('#entry-dialog')).toBeVisible();
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.getByRole('tab', { name: /Q2/ }).click();
+  await expect(page.getByText('£10.00')).toHaveCount(0);
+});
+
+test('uses the production Sociobot checkout', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('link', { name: 'Buy supporter unlock' })).toHaveAttribute(
+    'href',
+    'https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout'
+  );
+});
+
 test('has no serious accessibility issues or load errors', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));

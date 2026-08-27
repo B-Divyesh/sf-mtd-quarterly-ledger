@@ -41,7 +41,11 @@ The browser suite explicitly reloads the installed app offline and repeats the c
 
 Transactions and receipts live only in IndexedDB on the current browser. Encrypted backups use Web Crypto AES-256-GCM and PBKDF2-SHA-256 (310,000 iterations). There is no analytics or account system. License verification is the only product API request and never includes ledger data. See `/privacy/` and `/terms/`.
 
-For staging, verification defaults to `https://pilot-api.sociobot.in`. Release automation can set `VITE_BILLING_BASE=https://api.sociobot.in`; the product slug is the route key required by the billing contract.
+Supporter checkout and verification use the registered production Sociobot endpoint, `https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/…`. The checkout is a £19 one-time purchase handled by Sociobot/Dodo; the app stores only its returned license token and cached verification verdict locally.
+
+## Static hosting policy
+
+`public/staticwebapp.config.json` is deployed with `dist/` for Azure Static Web Apps Standard. It sets a restrictive CSP (including `frame-ancestors 'none'`), frame and Permissions-Policy headers, `application/manifest+json` for the manifest, no-cache worker/manifest responses, and one-year immutable caching for Vite's hashed `/assets/` files.
 
 ## Export notes
 

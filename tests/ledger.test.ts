@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
-import { amountToPence, quartersFor, type LedgerEntry } from '../src/types';
+import { describe, expect, it, vi } from 'vitest';
+import { amountToPence, dateInQuarter, quartersFor, type LedgerEntry } from '../src/types';
 import { toCsv } from '../src/exports';
 import { toXlsx } from '../src/xlsx';
 import { decryptBackup, encryptBackup } from '../src/backup';
+import { watchForServiceWorkerUpdate } from '../src/service-worker-update';
 
 const row: LedgerEntry = {
   id: 'one', date: '2026-04-06', type: 'income', amountPence: 125050,
@@ -17,6 +18,39 @@ describe('tax quarters', () => {
       expect.objectContaining({ start: '2026-10-06', end: '2027-01-05', due: '2027-02-07' }),
       expect.objectContaining({ start: '2027-01-06', end: '2027-04-05', due: '2027-05-07' })
     ]);
+  });
+
+  it('rejects calendar dates outside the selected quarter in application logic', () => {
+    const [q1] = quartersFor(2026);
+    expect(dateInQuarter('2026-04-06', q1)).toBe(true);
+    expect(dateInQuarter('2026-07-05', q1)).toBe(true);
+    expect(dateInQuarter('2026-07-06', q1)).toBe(false);
+    expect(dateInQuarter('2026-04-05', q1)).toBe(false);
+    expect(dateInQuarter('2026-05-99', q1)).toBe(false);
+  });
+});
+
+describe('PWA updates', () => {
+  it('announces a worker that becomes waiting in the current session', () => {
+    let onUpdateFound: (() => void) | undefined;
+    let onStateChange: (() => void) | undefined;
+    const worker = {
+      state: 'installing',
+      addEventListener: (_name: string, listener: () => void) => { onStateChange = listener; }
+    };
+    const registration = {
+      installing: worker,
+      addEventListener: (_name: string, listener: () => void) => { onUpdateFound = listener; }
+    };
+    const announce = vi.fn();
+
+    watchForServiceWorkerUpdate(registration as unknown as ServiceWorkerRegistration, () => true, announce);
+    onUpdateFound?.();
+    registration.installing = null as unknown as typeof worker;
+    worker.state = 'installed';
+    onStateChange?.();
+
+    expect(announce).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -76,7 +76,22 @@ export function quartersFor(startYear: number): Quarter[] {
   ];
 }
 
-export const inQuarter = (entry: LedgerEntry, quarter: Quarter) => entry.date >= quarter.start && entry.date <= quarter.end;
+/**
+ * Treat dates as calendar dates, rather than relying on the browser's date
+ * input constraints. This is deliberately shared by rendering and saving so
+ * a scripted or otherwise invalid form submission cannot put a record into a
+ * different quarter from the one the user is viewing.
+ */
+export function dateInQuarter(date: string, quarter: Quarter): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+  const parsed = new Date(`${date}T00:00:00.000Z`);
+  return Number.isFinite(parsed.getTime())
+    && parsed.toISOString().slice(0, 10) === date
+    && date >= quarter.start
+    && date <= quarter.end;
+}
+
+export const inQuarter = (entry: LedgerEntry, quarter: Quarter) => dateInQuarter(entry.date, quarter);
 
 export const formatDate = (value: string) => new Intl.DateTimeFormat('en-GB', {
   day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC'

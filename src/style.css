@@ -1,6 +1,6 @@
 @font-face {
   font-family: "Plex Draft";
-  src: url("/fonts/IBMPlexMono-Regular.woff2") format("woff2");
+  src: url("./assets/IBMPlexMono-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -98,7 +98,8 @@ h3 { font-size: 20px; }
 .lede { max-width: 57ch; color: var(--muted); font-size: 19px; line-height: 1.55; }
 .boundary-note { max-width: 58ch; padding-left: 16px; border-left: 2px solid var(--danger); color: var(--muted); font-size: 14px; }
 .boundary-note strong { color: var(--ink); }
-.hero-art { width: 100%; border: 1px solid var(--line); box-shadow: 14px 14px 0 var(--deep); clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%); aspect-ratio: 3 / 2; object-fit: cover; }
+.hero-art { width: 100%; content-visibility: auto; contain-intrinsic-size: 800px 533px; border: 1px solid var(--line); box-shadow: 14px 14px 0 var(--deep); clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%); aspect-ratio: 3 / 2; overflow: hidden; }
+.hero-art img { width: 100%; height: 100%; object-fit: cover; }
 
 .button {
   min-height: 44px;
