@@ -1,0 +1,18 @@
+{
+  "id": "/?source=installed",
+  "name": "Quarter sheet — MTD ledger",
+  "short_name": "Quarter sheet",
+  "description": "A local-first quarterly ledger for UK sole traders.",
+  "start_url": "/?v=1",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#071b2e",
+  "theme_color": "#071b2e",
+  "orientation": "any",
+  "categories": ["finance", "business", "productivity"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

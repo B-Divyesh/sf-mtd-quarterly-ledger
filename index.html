@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#071b2e" />
+    <meta name="description" content="A private, local-first quarterly income and expense ledger for UK sole traders." />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icons/mark.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/IBMPlexMono-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <title>Quarter sheet — simple MTD ledger</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to ledger</a>
+    <div id="app">
+      <header class="site-header">
+        <a class="brand" href="/" aria-label="Quarter sheet home"><img src="/icons/mark.svg" width="32" height="32" alt="" /><span>Quarter sheet</span></a>
+        <div class="header-actions"><span class="storage-note"><i aria-hidden="true"></i>Saved on this device</span><button class="button ghost compact" id="backup-open" type="button">Backup &amp; restore</button></div>
+      </header>
+      <div class="connection-banner" id="offline-banner" hidden role="status">You’re offline. Your ledger still works; exports and local backups are available.</div>
+      <main id="main" tabindex="-1">
+        <section class="intro" aria-labelledby="page-title">
+          <div>
+            <p class="eyebrow">Digital records / four measured periods</p>
+            <h1 id="page-title">Your tax year,<br /><em>ruled into quarters.</em></h1>
+            <p class="lede">Log income and expenses, see each quarter’s totals, then export a clean file for your bridging or recognised software.</p>
+            <p class="boundary-note"><strong>Records only.</strong> Quarter sheet does not submit updates to HMRC and does not give tax advice.</p>
+          </div>
+          <img class="hero-art" src="/assets/quarterly-drafting-desk.webp" width="768" height="512" alt="A blueprint drafting desk with a ledger sheet divided into four measured sections" decoding="async" fetchpriority="high" />
+        </section>
+
+        <section class="control-bar" aria-label="Ledger controls">
+          <label for="tax-year">Tax year</label>
+          <select id="tax-year"></select>
+          <button class="button primary" id="add-entry" type="button"><span aria-hidden="true">＋</span> Add transaction</button>
+        </section>
+
+        <section aria-labelledby="quarter-heading">
+          <div class="section-heading">
+            <div><p class="plan-ref">PLAN / 04</p><h2 id="quarter-heading">Quarter plan</h2></div>
+            <p id="tax-year-label" class="section-note"></p>
+          </div>
+          <div class="quarter-tabs" id="quarter-tabs" role="tablist" aria-label="Tax year quarters"></div>
+        </section>
+
+        <section class="working-sheet" aria-labelledby="sheet-heading">
+          <div class="sheet-title">
+            <div><p class="eyebrow" id="quarter-range"></p><h2 id="sheet-heading">Quarter 1 ledger</h2></div>
+            <p class="deadline" id="quarter-deadline"></p>
+          </div>
+          <div class="totals" aria-label="Quarter totals">
+            <div><span>Income</span><strong id="income-total">£0.00</strong></div>
+            <div><span>Expenses</span><strong id="expense-total">£0.00</strong></div>
+            <div class="net"><span>Difference <small>(not profit)</small></span><strong id="net-total">£0.00</strong></div>
+          </div>
+          <div class="sheet-toolbar">
+            <p id="entry-count">No transactions</p>
+            <div>
+              <button class="button secondary" id="export-csv" type="button">Export CSV</button>
+              <button class="button secondary" id="export-xlsx" type="button">Export XLSX</button>
+            </div>
+          </div>
+          <div id="ledger-state" aria-live="polite"><div class="loading-state"><span aria-hidden="true"></span>Opening your local ledger…</div></div>
+        </section>
+
+        <section class="category-map" aria-labelledby="map-heading">
+          <div class="section-heading">
+            <div><p class="plan-ref">REFERENCE / SA103F</p><h2 id="map-heading">Where your categories map</h2></div>
+            <p class="section-note">Based on 2025–26 SA103F boxes. Check current HMRC guidance or ask a tax professional if unsure.</p>
+          </div>
+          <details><summary>Open category reference</summary><div id="category-reference" class="category-grid"></div></details>
+        </section>
+
+        <section class="support-strip" aria-labelledby="support-heading">
+          <div><p class="eyebrow">Keep the useful part free</p><h2 id="support-heading">Founding supporter</h2><p>£19 one time. Unlock the blueprint night palette badge and backup nudges, and help fund recognised HMRC submission work. Ledger, receipts, backups and every export stay free.</p></div>
+          <div class="support-actions"><p id="license-status">No supporter license on this device.</p><a class="button annotation" id="buy-license" href="https://pilot-api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout">Buy supporter unlock</a><button class="text-button" id="restore-license" type="button">Have a license? Restore it</button></div>
+        </section>
+      </main>
+      <footer><p>Quarter sheet stores everything in this browser. Generated artwork disclosed in the <a href="/privacy/">privacy notice</a>.</p><nav aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></nav></footer>
+    </div>
+
+    <dialog id="entry-dialog" aria-labelledby="entry-dialog-title">
+      <form method="dialog" id="entry-form" novalidate>
+        <div class="dialog-head"><div><p class="plan-ref">LEDGER LINE</p><h2 id="entry-dialog-title">Add transaction</h2></div><button class="icon-button" type="button" data-close="entry-dialog" aria-label="Close transaction form">×</button></div>
+        <input type="hidden" id="entry-id" />
+        <fieldset><legend>Transaction type</legend><div class="segmented"><label><input type="radio" name="entry-type" value="income" checked /><span>Income</span></label><label><input type="radio" name="entry-type" value="expense" /><span>Expense</span></label></div></fieldset>
+        <div class="form-row"><label>Date<input id="entry-date" name="date" type="date" required /></label><label>Amount (£)<input id="entry-amount" name="amount" inputmode="decimal" autocomplete="off" placeholder="0.00" required aria-describedby="amount-help" /><small id="amount-help">Enter a positive amount, for example 48.50.</small></label></div>
+        <label>Category<select id="entry-category" name="category" required></select><small id="category-help"></small></label>
+        <label>Note <span class="optional">Optional</span><input id="entry-note" name="note" maxlength="140" autocomplete="off" /><small>Invoice, customer or a short reminder. Max 140 characters.</small></label>
+        <label>Receipt photo <span class="optional">Optional · stored only here</span><input id="entry-receipt" name="receipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" /><small id="receipt-help">JPG, PNG, WebP or PDF up to 5 MB.</small></label>
+        <div class="form-error" id="entry-error" role="alert"></div>
+        <div class="dialog-actions"><button class="button ghost" type="button" data-close="entry-dialog">Cancel</button><button class="button primary" type="submit" value="default">Save transaction</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="backup-dialog" aria-labelledby="backup-title">
+      <div class="dialog-head"><div><p class="plan-ref">DATA OWNERSHIP</p><h2 id="backup-title">Backup &amp; restore</h2></div><button class="icon-button" type="button" data-close="backup-dialog" aria-label="Close backup and restore">×</button></div>
+      <p>Download an encrypted copy of every tax year and receipt. Keep the passphrase separately—we cannot recover it.</p>
+      <form id="backup-form"><label>Backup passphrase<input id="backup-passphrase" type="password" minlength="10" autocomplete="new-password" required /><small>Use at least 10 characters.</small></label><button class="button primary" type="submit">Download encrypted backup</button></form>
+      <hr />
+      <form id="restore-form"><label>Encrypted backup file<input id="restore-file" type="file" accept=".mtdledger,application/json" required /></label><label>Backup passphrase<input id="restore-passphrase" type="password" autocomplete="current-password" required /></label><p class="warning-note">Restore replaces the ledger currently on this device.</p><button class="button secondary" type="submit">Restore this backup</button></form>
+      <div class="form-error" id="backup-error" role="alert"></div>
+    </dialog>
+
+    <dialog id="license-dialog" aria-labelledby="license-title">
+      <form id="license-form"><div class="dialog-head"><h2 id="license-title">Restore supporter license</h2><button class="icon-button" type="button" data-close="license-dialog" aria-label="Close license form">×</button></div><label>License token<input id="license-token" autocomplete="off" required /></label><div class="form-error" id="license-error" role="alert"></div><div class="dialog-actions"><button class="button ghost" type="button" data-close="license-dialog">Cancel</button><button class="button primary" type="submit">Verify license</button></div></form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toast-message"></span><button class="text-button" id="toast-action" type="button" hidden></button></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
