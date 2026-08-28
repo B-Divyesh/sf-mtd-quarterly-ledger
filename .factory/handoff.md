@@ -1,37 +1,30 @@
-# Polish 2 handoff — accepted
+# Review 3 handoff
 
-## Repair
+## Outcome
 
-Commit `72103d0f77ce067978939c9ab2f617b467ef245f` closes every review-1, review-2, and prior low-severity finding. It aligns paid copy with the live one-time $19 USD checkout, adds checked supporter-benefit and no-tax-advice claims, standardizes browser-scoped language, and adds a fully local CSV import flow with mapping, preview, duplicate detection, cancellation, confirmation, demo isolation, and offline use.
+Adversarial review 3 is complete with a **FAIL** verdict: 1 blocking finding and 3 minor findings. No product code was modified.
 
-The product remains a static Vite TypeScript offline PWA. Its midnight-blue drafting-sheet visual system is preserved; the import flow uses its existing cyan/cream/red-pencil grammar.
+The blocking finding reopens review-1 M1. The live 404 lacks `og:url`, shows the stale footer label **polish 1** while other routes show **polish 2**, and the passing `route-metadata` claim test does not assert the full 404 metadata/footer/reload outcome it claims to cover.
 
-## Local verification
+The minor findings are ambiguous `$19` currency wording for a UK audience, **local ledger** jargon in the README, and a stale/inaccurately counted `.factory/copy-audit.md`.
 
-- Clean clone `/tmp/mtd-quarterly-ledger-polish2.AQqKer`: `npm ci` passed with 0 vulnerabilities. Every one of the 31 commands declared in `.factory/claims.json` passed independently.
+## Files changed
+
+- `.factory/review-3.md` — full first-read, copy, demo, claim, history, structure, accessibility, and missed-leverage review.
+- `.factory/handoff.md` — this review handoff.
+
+## Verification performed
+
+- Cold live checks at 390 × 844 and 1440 × 900.
+- Live demo entry, sample visibility, mutation, reset, exit, re-entry, real/demo IndexedDB isolation, and same-origin request inspection.
+- Live service-worker offline reload, CSV export, and encrypted backup.
+- Every command in `.factory/claims.json` run independently from clean clone `/tmp/mtd-review3-clean.alm9GH`: `CLAIMS_COMPLETE=31 FAILURES=0`.
 - `npm test`: 8/8 passed.
 - `npm run build`: passed and emitted `dist/`.
-- `npm run test:e2e -- --workers=1`: 74/74 desktop/mobile tests passed.
-- Local URL verification: no console errors, one h1, `lang=en-GB`, main landmark, 0 missing alt attributes, and 0 unnamed buttons. Playwright Axe found 0 serious/critical issues across home, demo, legal, and 404.
-- Asset budgets: entry app JS 29.02 kB raw / 10.13 kB gzip; CSS 20.21 kB raw / 5.12 kB gzip; font 14.71 kB; mobile illustration 10.33 kB.
+- `npm run test:e2e -- --workers=1`: 74/74 passed.
+- Live route metadata/status/focus audit, 44 px target audit, internal-link crawl, Playwright Axe scan, and `/opt/fleet/lib/verify-url.sh`.
+- Every earlier review finding checked against both live behaviour and current source.
 
-## Run locally
+## Remaining work
 
-```sh
-npm ci
-npm test
-npm run build
-npm run test:e2e -- --workers=1
-```
-
-Run the exact claim commands listed in `.factory/claims.json` individually. Deploy `dist/` as the static site output.
-
-## Deployment and live recheck
-
-- Static deployment `9b2cb60f-d202-4ce4-8f5b-185977897bbb` completed successfully through the factory static work-order configuration.
-- Cold live home now exposes **Stored in this browser**, **Import CSV**, and **Pay $19 once**. `/`, `/demo/`, `/?demo=1`, `/privacy/`, and `/terms/` return 200; an unknown route returns 404.
-- Cold 390px demo has the persistent safe-demo banner, £850.00 income, £164.80 expenses, the Import CSV control, and no error state.
-- Live `verify-url.sh` on home, demo, and privacy found no console errors, missing alt attributes, or unnamed buttons. Home title/lang/h1/main are all correct.
-- The read-only Sociobot checkout starts in USD and exposes $19.00, price 1900, and `one_time`, matching public product copy and the executed claim test.
-
-No known product gaps remain. The standalone Axe CLI could not launch because its downloaded ChromeDriver does not match the supplied Chromium; the committed Playwright Axe integration passed serious/critical checks on all routes.
+Resolve F-3-1 through F-3-4 in `.factory/review-3.md`, extend the route claim test so it cannot miss the 404 regression, deploy through the factory, and repeat the review from a fresh context. No infrastructure, DNS, billing, or product code was changed during this review.
