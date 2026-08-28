@@ -4,26 +4,41 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#071b2e" />
-    <meta name="description" content="A private, local-first quarterly income and expense ledger for UK sole traders." />
+    <meta name="description" content="Track quarterly income and expenses in your browser for UK sole traders using Making Tax Digital records." />
+    <link rel="canonical" href="https://mtd-quarterly-ledger.sociobot.in/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Quarter sheet — quarterly income and expense ledger" />
+    <meta property="og:description" content="Track quarterly income and expenses in your browser for UK sole traders." />
+    <meta property="og:image" content="https://mtd-quarterly-ledger.sociobot.in/quarter-sheet-social.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Quarter sheet — quarterly income and expense ledger" />
+    <meta name="twitter:description" content="Track quarterly income and expenses in your browser for UK sole traders." />
+    <meta name="twitter:image" content="https://mtd-quarterly-ledger.sociobot.in/quarter-sheet-social.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icons/mark.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <link rel="preload" href="/src/assets/IBMPlexMono-Regular.woff2" as="font" type="font/woff2" crossorigin />
-    <title>Quarter sheet — simple MTD ledger</title>
+    <title>Quarter sheet — quarterly income and expense ledger</title>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to ledger</a>
     <div id="app">
       <header class="site-header">
         <a class="brand" href="/" aria-label="Quarter sheet home"><img src="/icons/mark.svg" width="32" height="32" alt="" /><span>Quarter sheet</span></a>
-        <div class="header-actions"><span class="storage-note"><i aria-hidden="true"></i>Saved on this device</span><button class="button ghost compact" id="backup-open" type="button">Backup &amp; restore</button></div>
+        <nav class="site-nav" aria-label="Main navigation"><a href="/demo/">Demo</a><a href="#how-it-works">How it works</a><a href="/privacy/">Privacy</a></nav>
+        <div class="header-actions"><span class="storage-note"><i aria-hidden="true"></i>Saved on this device</span><button class="button ghost compact" id="backup-open" type="button">Back up or restore records</button></div>
       </header>
       <div class="connection-banner" id="offline-banner" hidden role="status">You’re offline. Your ledger still works; exports and local backups are available.</div>
+      <aside class="demo-banner" id="demo-banner" hidden aria-label="Demo controls"><span><strong>Demo</strong> — sample data, nothing is saved</span><div><button class="text-button" id="reset-demo" type="button">Reset demo</button><button class="button annotation compact" id="start-real" type="button">Start for real</button></div></aside>
       <main id="main" tabindex="-1">
         <section class="intro" aria-labelledby="page-title">
           <div>
-            <p class="eyebrow">Digital records / four measured periods</p>
-            <h1 id="page-title">Your tax year,<br /><em>ruled into quarters.</em></h1>
-            <p class="lede">Log income and expenses, see each quarter’s totals, then export a clean file for your bridging or recognised software.</p>
+            <p class="eyebrow">Quarterly records for sole traders</p>
+            <h1 id="page-title" tabindex="-1">Track quarterly <em>income and expenses</em></h1>
+            <p class="lede">For UK sole traders keeping Making Tax Digital records without a full accounting suite.</p>
+            <div class="intro-actions"><a class="button annotation" href="/demo/">Try it with sample data</a><button class="button primary" id="hero-add-entry" type="button">Add your first transaction</button></div>
+            <p class="action-explainer">Sample data opens a populated quarterly ledger.</p>
+            <ul class="plain-facts"><li>Stored on this device</li><li>Works offline after the first visit</li><li>Core ledger and exports are free</li></ul>
             <p class="boundary-note"><strong>Records only.</strong> Quarter sheet does not submit updates to HMRC and does not give tax advice.</p>
           </div>
           <picture class="hero-art">
@@ -40,7 +55,7 @@
 
         <section aria-labelledby="quarter-heading">
           <div class="section-heading">
-            <div><p class="plan-ref">PLAN / 04</p><h2 id="quarter-heading">Quarter plan</h2></div>
+            <div><p class="plan-ref">Four tax-year quarters</p><h2 id="quarter-heading">Your four MTD quarters</h2></div>
             <p id="tax-year-label" class="section-note"></p>
           </div>
           <div class="quarter-tabs" id="quarter-tabs" role="tablist" aria-label="Tax year quarters"></div>
@@ -68,18 +83,23 @@
 
         <section class="category-map" aria-labelledby="map-heading">
           <div class="section-heading">
-            <div><p class="plan-ref">REFERENCE / SA103F</p><h2 id="map-heading">Where your categories map</h2></div>
-            <p class="section-note">Based on 2025–26 SA103F boxes. Check current HMRC guidance or ask a tax professional if unsure.</p>
+            <div><p class="plan-ref">HMRC category reference</p><h2 id="map-heading">How categories appear in your export</h2></div>
+            <p class="section-note">Based on 2025–26 SA103F, the HMRC self-employment form categories. Check current HMRC guidance if unsure.</p>
           </div>
           <details><summary>Open category reference</summary><div id="category-reference" class="category-grid"></div></details>
         </section>
 
+        <section class="how-it-works" id="how-it-works" aria-labelledby="how-heading">
+          <p class="eyebrow">Three steps</p><h2 id="how-heading">Keep each quarter ready</h2>
+          <ol><li><strong>Add transactions</strong><span>Record money in and out with a date and category.</span></li><li><strong>Check each quarter</strong><span>See income, expenses, and category mappings together.</span></li><li><strong>Export your records</strong><span>Download CSV or XLSX for your accounting software.</span></li></ol>
+        </section>
+
         <section class="support-strip" aria-labelledby="support-heading">
-          <div><p class="eyebrow">Keep the useful part free</p><h2 id="support-heading">Founding supporter</h2><p>£19 one time. Unlock the blueprint night palette badge and backup nudges, and help fund recognised HMRC submission work. Ledger, receipts, backups and every export stay free.</p></div>
-          <div class="support-actions"><p id="license-status">No supporter license on this device.</p><a class="button annotation" id="buy-license" href="https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout">Buy supporter unlock</a><button class="text-button" id="restore-license" type="button">Have a license? Restore it</button></div>
+          <div><p class="eyebrow">Support Quarter sheet</p><h2 id="support-heading">Support development for £19</h2><p>Pay £19 once. Get a supporter badge and backup reminders. Ledger, receipts, backups and exports stay free.</p></div>
+          <div class="support-actions"><p id="license-status">No supporter access on this device.</p><a class="button annotation" id="buy-license" href="https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout">Buy supporter access</a><button class="text-button" id="restore-license" type="button">Restore supporter access</button></div>
         </section>
       </main>
-      <footer><p>Quarter sheet stores everything in this browser. Generated artwork disclosed in the <a href="/privacy/">privacy notice</a>.</p><nav aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></nav></footer>
+      <footer><p>Quarterly records in your browser. <a href="/privacy/">Privacy</a> explains the generated artwork.</p><nav aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><span>Built by Param Factory · build repair-1</span></nav></footer>
     </div>
 
     <dialog id="entry-dialog" aria-labelledby="entry-dialog-title">
@@ -90,14 +110,14 @@
         <div class="form-row"><label>Date<input id="entry-date" name="date" type="date" required /></label><label>Amount (£)<input id="entry-amount" name="amount" inputmode="decimal" autocomplete="off" placeholder="0.00" required aria-describedby="amount-help" /><small id="amount-help">Enter a positive amount, for example 48.50.</small></label></div>
         <label>Category<select id="entry-category" name="category" required></select><small id="category-help"></small></label>
         <label>Note <span class="optional">Optional</span><input id="entry-note" name="note" maxlength="140" autocomplete="off" /><small>Invoice, customer or a short reminder. Max 140 characters.</small></label>
-        <label>Receipt photo <span class="optional">Optional · stored only here</span><input id="entry-receipt" name="receipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" /><small id="receipt-help">JPG, PNG, WebP or PDF up to 5 MB.</small></label>
+        <label>Receipt file <span class="optional">Optional · stored in this browser</span><input id="entry-receipt" name="receipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" /><small id="receipt-help">JPG, PNG, WebP or PDF up to 5 MB.</small></label>
         <div class="form-error" id="entry-error" role="alert"></div>
         <div class="dialog-actions"><button class="button ghost" type="button" data-close="entry-dialog">Cancel</button><button class="button primary" type="submit" value="default">Save transaction</button></div>
       </form>
     </dialog>
 
     <dialog id="backup-dialog" aria-labelledby="backup-title">
-      <div class="dialog-head"><div><p class="plan-ref">DATA OWNERSHIP</p><h2 id="backup-title">Backup &amp; restore</h2></div><button class="icon-button" type="button" data-close="backup-dialog" aria-label="Close backup and restore">×</button></div>
+      <div class="dialog-head"><div><p class="plan-ref">DATA OWNERSHIP</p><h2 id="backup-title">Back up or restore records</h2></div><button class="icon-button" type="button" data-close="backup-dialog" aria-label="Close backup and restore">×</button></div>
       <p>Download an encrypted copy of every tax year and receipt. Keep the passphrase separately—we cannot recover it.</p>
       <form id="backup-form"><label>Backup passphrase<input id="backup-passphrase" type="password" minlength="10" autocomplete="new-password" required /><small>Use at least 10 characters.</small></label><button class="button primary" type="submit">Download encrypted backup</button></form>
       <hr />
@@ -106,10 +126,11 @@
     </dialog>
 
     <dialog id="license-dialog" aria-labelledby="license-title">
-      <form id="license-form"><div class="dialog-head"><h2 id="license-title">Restore supporter license</h2><button class="icon-button" type="button" data-close="license-dialog" aria-label="Close license form">×</button></div><label>License token<input id="license-token" autocomplete="off" required /></label><div class="form-error" id="license-error" role="alert"></div><div class="dialog-actions"><button class="button ghost" type="button" data-close="license-dialog">Cancel</button><button class="button primary" type="submit">Verify license</button></div></form>
+      <form id="license-form"><div class="dialog-head"><h2 id="license-title">Restore supporter access</h2><button class="icon-button" type="button" data-close="license-dialog" aria-label="Close license form">×</button></div><label>License token<input id="license-token" autocomplete="off" required /></label><div class="form-error" id="license-error" role="alert"></div><div class="dialog-actions"><button class="button ghost" type="button" data-close="license-dialog">Cancel</button><button class="button primary" type="submit">Verify supporter access</button></div></form>
     </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toast-message"></span><button class="text-button" id="toast-action" type="button" aria-label="Toast action" hidden></button></div>
+    <p class="sr-only" id="route-announcement" aria-live="polite"></p>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -1,7 +1,7 @@
-const VERSION = 'quarter-sheet-v4';
+const VERSION = 'quarter-sheet-v5';
 const SHELL = `${VERSION}-shell`;
 const RUNTIME = `${VERSION}-runtime`;
-const PRECACHE = ['/', '/index.html', '/offline.html', '/manifest.webmanifest', '/icons/mark.svg', '/icons/icon-192.png'];
+const PRECACHE = ['/', '/index.html', '/404.html', '/offline.html', '/manifest.webmanifest', '/icons/mark.svg', '/icons/icon-192.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {

@@ -39,6 +39,7 @@ Only opacity and transform animate, 160–220ms with ease-out. No ambient or loo
 - Authored SVG registration marks and PWA icons use only product tokens.
 - Hero prompt (taxonomy: productivity-visual): “Overhead editorial still-life illustration on a deep navy blueprint drafting table; a clean cream ledger sheet divided precisely into four quarterly panels with abstract ruled lines and small receipt slips; cyan technical pencil, brass ruler, set square, one restrained coral correction mark; crisp screen-print and paper-cut texture, subtle cyan grid, practical and calm, generous negative space, orthographic top-down composition, no readable text, no numbers, no logo, no watermark, no people, no hands, no gradients.”
 - Generated with the factory Azure image deployment (`factory-image`) on 27 August 2026 using `/opt/fleet/lib/gen-image.sh`. Original generation is retained in `assets/src/` with a JSON prompt sidecar; production WebP is optimized to ≤300 KB.
+- `public/quarter-sheet-social.png` is a 1200 × 630 centre crop composed from that retained original artwork on 28 August 2026. It is used only for social metadata and has no additional external license or model dependency.
 
 ## Why it fits
 

@@ -1,21 +1,25 @@
-# Quarter sheet
+# Quarter sheet: quarterly records for UK sole traders
 
-Quarter sheet is a deliberately small, local-first quarterly income and expense ledger for UK sole traders working under Making Tax Digital for Income Tax. It helps tutors, freelancers, tradespeople and other self-employed people keep digital records, see the four tax-year periods, map common costs to SA103F categories, and export clean CSV or XLSX files for bridging or HMRC-recognised software.
+Track quarterly income and expenses for UK sole traders using Making Tax Digital records. Add transactions, check each quarter, and export CSV or XLSX for accounting software.
 
-It does **not** submit to HMRC, provide tax advice, support VAT/payroll, or connect to a bank. Check current HMRC guidance before filing.
+It does not submit updates to HMRC or provide tax advice. It does not handle VAT, payroll, or bank feeds.
 
-## What works
+## Try the demo
 
-- Income and expense lines with exact GBP amounts, dates, notes and optional local receipt images/PDFs
-- UK tax-year quarters (6 April through 5 April), running totals and 7 August/November/February/May deadlines
-- SA103F category reference and mappings in each export
-- CSV and real XLSX exports suitable for checking/importing into bridging tools
-- Passphrase-encrypted whole-ledger backup and destructive-confirmed restore
-- IndexedDB persistence, offline app shell, installable PWA manifest and update prompt
-- Keyboard and 390px mobile paths, reduced motion, clear empty/loading/error/offline states
-- Optional £19 one-time Sociobot supporter unlock; all record keeping and data ownership tools stay free
+Open `/demo/` or `/?demo=1`. It loads tutoring income, materials, and travel sample records. The demo uses a separate `demo:` IndexedDB database. **Reset demo** restores its sample. **Start for real** opens the empty real ledger.
 
-## Develop and verify
+## Ledger features
+
+- Transactions with dates, GBP amounts, notes, and optional receipt files
+- Tax-year quarters running from 6 April to 5 April
+- HMRC self-employment form category references
+- CSV and XLSX downloads
+- Passphrase-encrypted backups
+- A local ledger that works offline after the first visit
+
+Each visitor-facing promise is listed with an executable test in `.factory/claims.json`.
+
+## Run and verify
 
 Requires Node.js 20 or newer.
 
@@ -24,33 +28,25 @@ npm ci
 npm run dev
 npm test
 npm run build
-```
-
-The reproducible production build command is exactly `npm run build`; deploy `dist/` as a static site. `dist/index.html` is the application root, with `dist/privacy/index.html` and `dist/terms/index.html` as legal pages.
-
-Browser tests need Playwright Chromium once per environment:
-
-```sh
-npx playwright install chromium
 npm run test:e2e
 ```
 
-The browser suite explicitly reloads the installed app offline and repeats the core path at a 390px viewport.
+Run every declared claim test from a clean checkout:
 
-## Data and privacy
+```sh
+node -e "const c=require('./.factory/claims.json'); for (const x of c) console.log(x.test)"
+```
 
-Transactions and receipts live only in IndexedDB on the current browser. Encrypted backups use Web Crypto AES-256-GCM and PBKDF2-SHA-256 (310,000 iterations). There is no analytics or account system. License verification is the only product API request and never includes ledger data. See `/privacy/` and `/terms/`.
+Run the printed commands one at a time. Browser tests use Playwright Chromium 1.58.2.
 
-Supporter checkout and verification use the registered production Sociobot endpoint, `https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/…`. The checkout is a £19 one-time purchase handled by Sociobot/Dodo; the app stores only its returned license token and cached verification verdict locally.
+Deploy the generated `dist/` directory as a static site. It includes the PWA manifest, service worker, `/privacy/`, `/terms/`, and a designed `404.html`.
 
-## Static hosting policy
+## Privacy and support
 
-`public/staticwebapp.config.json` is deployed with `dist/` for Azure Static Web Apps Standard. It sets a restrictive CSP (including `frame-ancestors 'none'`), frame and Permissions-Policy headers, `application/manifest+json` for the manifest, no-cache worker/manifest responses, and one-year immutable caching for Vite's hashed `/assets/` files.
+Transactions and receipts stay in this browser. There are no analytics or accounts. Supporter access costs £19 once and adds a badge and backup reminders. Ledger, receipts, backups, and exports remain free. Checkout and verification use Sociobot/Dodo; ledger records are never sent with verification.
 
-## Export notes
-
-CSV columns are `date`, `type`, `category`, `hmrc_box`, `description`, `amount_gbp`, and `receipt_attached`. XLSX contains the same seven columns and an auto-filter. Receipt binaries are included in encrypted backup files but not spreadsheet exports. Acceptance by a particular bridging tool depends on its current import mapping, so test an export before a deadline.
+Read the [privacy notice](/privacy/) and [terms](/terms/). Generated artwork is original to this product; its prompt and provenance are in `.factory/design.md`.
 
 ## License
 
-MIT. Generated artwork is original to this product; prompt and provenance are recorded in `.factory/design.md` and `assets/src/`.
+MIT.

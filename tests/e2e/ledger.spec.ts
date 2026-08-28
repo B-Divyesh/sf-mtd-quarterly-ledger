@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 
 test('logs a transaction and survives an offline reload', async ({ page, context }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Your tax year/);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Track quarterly income/);
   await page.getByRole('button', { name: 'Add transaction' }).click();
   await page.getByLabel('Amount (£)').fill('250.75');
   await page.getByLabel(/Note/).fill('Website project');
@@ -50,7 +50,7 @@ test('refuses a date outside the selected quarter even when HTML bounds are bypa
 
 test('uses the production Sociobot checkout', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('link', { name: 'Buy supporter unlock' })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Buy supporter access' })).toHaveAttribute(
     'href',
     'https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout'
   );
@@ -62,7 +62,7 @@ test('has no serious accessibility issues or load errors', async ({ page }) => {
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
   await page.goto('/');
   await expect(page.locator('#ledger-state')).not.toContainText('Opening your local ledger');
-  const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+  const result = await new AxeBuilder({ page: page as never }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
   expect(result.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
   expect(errors).toEqual([]);
 });

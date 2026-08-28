@@ -1,19 +1,48 @@
-# Review 1 handoff — FAIL
+# Repair handoff — perfection loop 1
 
-Adversarial first-read review completed for live production and clean repository base `9be2a4b1929cdea4e6812a8b3afae6d04c251e21`.
+This repair resolves every blocking finding in `.factory/review-1.md` while retaining the midnight-blue blueprint drafting-sheet identity.
 
-The complete report is `.factory/review-1.md`. It records four blockers: the mobile/desktop first screen does not identify the audience or offer a sample-data action; no isolated demo exists and demo-shaped URLs share real IndexedDB; `.factory/claims.json` and all `@claim` tests are absent; and unknown routes return the real ledger with HTTP 200 instead of a designed 404.
+## Delivered
 
-Verification performed:
+- Replaced the first screen with the reviewed plain-language job, audience, one-click sample action, real first action, and three tested facts. The 390 × 844 px first screen exposes both actions without scrolling.
+- Added `/demo/` and `?demo=1` sample mode. It seeds tutoring income, workshop materials, and client travel in `demo:quarter-sheet-ledger`; real records remain in `quarter-sheet-ledger`. The persistent demo banner offers reset and exit.
+- Added `.factory/demo.md`, `.factory/claims.json`, `.factory/copy-audit.md`, and 16 tagged sandbox claim tests.
+- Added static `/demo/` build output, a blueprint-styled `404.html`, status-404 hosting override, distinct route titles/canonicals/social metadata, generated-art-derived 1200 × 630 social image, legal navigation, heading focus, live announcements, and 44px mobile controls.
+- Added a three-step “How it works” section, consistent “supporter access” language, explicit row control names, and the corrected receipt-file label.
+
+## Verification evidence
+
+Executed in this workspace on 28 August 2026:
 
 ```sh
 npm ci
-npx playwright install chromium
-npm test
 npm run build
+npm test
+npm run test:e2e
+node -e '... verify every claim id appears exactly once as @claim:<id> ...'
+git diff --check
+```
+
+Results:
+
+- `npm run build` passed. `dist/` contains `index.html`, `demo/index.html`, legal pages, and `404.html`.
+- `npm test` passed: 7/7 unit tests.
+- `npm run test:e2e` passed: 42/42 Playwright checks, serially across desktop and 390 px mobile. This includes axe serious/critical checks, offline reload with `context.setOffline(true)`, demo namespace isolation/reset, downloads, receipt persistence, encrypted-backup opacity, route focus, keyboard tabs, and network interception.
+- Claims registry validation printed: `claims: 16 each tagged exactly once`.
+- Production-size build output: initial app JS 22.84 KB (8.38 KB gzip), CSS 18.11 KB (4.83 KB gzip), local font 14.71 KB, mobile hero 10.33 KB, desktop hero 55.39 KB. All are below the static PWA budgets.
+- Static preview returned 200 for `/demo/`; the deployed Azure Static Web Apps configuration now has no navigation fallback, so unknown paths reach the configured 404 response rewrite with status 404.
+
+## Run and deploy
+
+```sh
+npm ci
+npm run build
+npm test
 npm run test:e2e
 ```
 
-Results: 7/7 unit tests passed, the Vite build produced `dist/`, and 10/10 browser tests passed across desktop and 390 px. Live axe scans reported no serious/critical findings. Manual live checks covered cold first screens, `/demo`, `?demo=1`, shared-storage markers, offline reload, CSV content, request interception, metadata, unknown routes, navigation focus, touch targets, and all links.
+Deploy `dist/` as the static artifact. The factory deployment uses `public/staticwebapp.config.json` copied into `dist/` for headers and the 404 response override.
 
-No product code was modified. The only intended tracked changes are this handoff and `.factory/review-1.md`.
+## Known gaps
+
+None known. Lighthouse was not run in this container; bundle-size evidence and automated accessibility coverage are recorded above.

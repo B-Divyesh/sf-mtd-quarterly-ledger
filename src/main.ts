@@ -1,18 +1,30 @@
 import './style.css';
 import { decryptBackup, encryptBackup } from './backup';
-import { deleteEntry, listEntries, replaceEntries, saveEntry } from './db';
+import { clearEntries, deleteEntry, listEntries, replaceEntries, saveEntry, useLedgerNamespace } from './db';
 import { downloadBlob, toCsv } from './exports';
 import { watchForServiceWorkerUpdate } from './service-worker-update';
 import { amountToPence, categories, categoryById, dateInQuarter, formatDate, inQuarter, money, quartersFor, taxYearFor, type EntryType, type LedgerEntry } from './types';
 
 const $ = <T extends Element>(selector: string) => document.querySelector<T>(selector)!;
+const isDemo = location.pathname === '/demo' || location.pathname === '/demo/' || new URLSearchParams(location.search).get('demo') === '1';
+const storagePrefix = isDemo ? 'demo:' : '';
+const storageKey = (key: string) => `${storagePrefix}${key}`;
 const currentYear = taxYearFor();
-let year = Number(localStorage.getItem('quarter-sheet:year')) || currentYear;
+let year = Number(localStorage.getItem(storageKey('quarter-sheet:year'))) || currentYear;
 let quarterIndex = 0;
 let entries: LedgerEntry[] = [];
 let undoEntry: LedgerEntry | null = null;
 let undoTimer = 0;
 let toastTimer = 0;
+
+function demoEntries(taxYear: number): LedgerEntry[] {
+  const timestamp = `${taxYear}-05-20T09:00:00.000Z`;
+  return [
+    { id: 'demo-tutoring', date: `${taxYear}-07-18`, type: 'income', amountPence: 85000, categoryId: 'turnover', note: 'July tutoring invoices', createdAt: timestamp, updatedAt: timestamp },
+    { id: 'demo-materials', date: `${taxYear}-08-02`, type: 'expense', amountPence: 12640, categoryId: 'cost-goods', note: 'Workshop materials', createdAt: timestamp, updatedAt: timestamp },
+    { id: 'demo-travel', date: `${taxYear}-08-14`, type: 'expense', amountPence: 3840, categoryId: 'travel', note: 'Client visits', createdAt: timestamp, updatedAt: timestamp }
+  ];
+}
 
 const escapeHtml = (value: string) => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 
@@ -80,7 +92,8 @@ function renderLedger(visible: LedgerEntry[]) {
   }
   state.innerHTML = `<div class="ledger-table"><div class="ledger-head" aria-hidden="true"><span>Date</span><span>Line</span><span>Category / mapping</span><span>Amount</span><span></span></div><ul>${visible.map((entry) => {
     const category = categoryById(entry.categoryId);
-    return `<li><time datetime="${entry.date}">${formatDate(entry.date)}</time><div class="entry-note"><span class="type-mark ${entry.type}">${entry.type}</span><strong>${escapeHtml(entry.note || category?.label || 'Transaction')}</strong>${entry.receipt ? '<button class="receipt-link" type="button" data-receipt="' + entry.id + '">View receipt</button>' : ''}</div><div class="entry-category"><span>${escapeHtml(category?.label || entry.categoryId)}</span><code>${escapeHtml(category?.box || 'Unmapped')}</code></div><strong class="entry-amount ${entry.type}">${entry.type === 'expense' ? '−' : '+'}${money(entry.amountPence)}</strong><div class="row-actions"><button type="button" data-edit="${entry.id}">Edit</button><button class="danger-link" type="button" data-delete="${entry.id}">Delete</button></div></li>`;
+    const name = escapeHtml(entry.note || category?.label || 'transaction');
+    return `<li><time datetime="${entry.date}">${formatDate(entry.date)}</time><div class="entry-note"><span class="type-mark ${entry.type}">${entry.type}</span><strong>${name}</strong>${entry.receipt ? '<button class="receipt-link" type="button" data-receipt="' + entry.id + '">View receipt</button>' : ''}</div><div class="entry-category"><span>${escapeHtml(category?.label || entry.categoryId)}</span><code>${escapeHtml(category?.box || 'Unmapped')}</code></div><strong class="entry-amount ${entry.type}">${entry.type === 'expense' ? '−' : '+'}${money(entry.amountPence)}</strong><div class="row-actions"><button type="button" data-edit="${entry.id}" aria-label="Edit ${name} transaction">Edit</button><button class="danger-link" type="button" data-delete="${entry.id}" aria-label="Delete ${name} transaction">Delete</button></div></li>`;
   }).join('')}</ul></div>`;
   state.querySelectorAll<HTMLButtonElement>('[data-edit]').forEach((button) => button.addEventListener('click', () => openEntryDialog(entries.find((entry) => entry.id === button.dataset.edit))));
   state.querySelectorAll<HTMLButtonElement>('[data-delete]').forEach((button) => button.addEventListener('click', () => void removeEntry(button.dataset.delete!)));
@@ -197,7 +210,7 @@ async function handleBackup(event: SubmitEvent) {
     const blob = await encryptBackup(entries, passphrase);
     downloadBlob(blob, `quarter-sheet-backup-${new Date().toISOString().slice(0, 10)}.mtdledger`);
     ($('#backup-passphrase') as HTMLInputElement).value = '';
-    localStorage.setItem('quarter-sheet:last-backup', new Date().toISOString());
+    localStorage.setItem(storageKey('quarter-sheet:last-backup'), new Date().toISOString());
     if (document.documentElement.classList.contains('supporter')) setSupporter(true);
     showToast('Encrypted backup downloaded. Keep its passphrase safe.');
   } catch { $('#backup-error').textContent = 'The backup could not be created. Try again.'; }
@@ -225,24 +238,24 @@ const billingBase = import.meta.env.VITE_BILLING_BASE || 'https://api.sociobot.i
 
 function setSupporter(active: boolean, message?: string) {
   document.documentElement.classList.toggle('supporter', active);
-  const lastBackup = localStorage.getItem('quarter-sheet:last-backup');
+  const lastBackup = localStorage.getItem(storageKey('quarter-sheet:last-backup'));
   const backupDue = !lastBackup || Date.now() - new Date(lastBackup).getTime() > 30 * 86_400_000;
-  $('#license-status').textContent = message ?? (active ? `Supporter unlock active.${backupDue ? ' Your encrypted backup is due.' : ' Your recent backup is noted.'}` : 'No supporter license on this device.');
-  $('#buy-license').textContent = active ? 'Supporter unlock active' : 'Buy supporter unlock';
+  $('#license-status').textContent = message ?? (active ? `Supporter access is active.${backupDue ? ' Your encrypted backup is due.' : ' Your last backup is noted.'}` : 'No supporter access on this device.');
+  $('#buy-license').textContent = active ? 'Supporter access is active' : 'Buy supporter access';
 }
 
 async function verifyLicense(token: string, force = false) {
   const cached = JSON.parse(localStorage.getItem(verdictKey) || 'null') as { checkedAt?: number; valid?: boolean } | null;
   if (!force && cached?.valid && cached.checkedAt && Date.now() - cached.checkedAt < 86_400_000) { setSupporter(true); return true; }
-  if (cached?.valid) setSupporter(true, 'Supporter unlock active; checking quietly…');
+  if (cached?.valid) setSupporter(true, 'Supporter access is active while verification completes.');
   try {
     const response = await fetch(`${billingBase}/api/v1/products/mtd-quarterly-ledger/verify?license=${encodeURIComponent(token)}`);
     if (!response.ok) throw new Error('Verification unavailable');
     const result = await response.json() as { valid: boolean; reason?: string };
     localStorage.setItem(verdictKey, JSON.stringify({ valid: result.valid, checkedAt: Date.now() }));
-    setSupporter(result.valid, result.valid ? undefined : 'License no longer active. You can buy a new supporter unlock.');
+    setSupporter(result.valid, result.valid ? undefined : 'Supporter access could not be verified. You can buy supporter access again.');
     return result.valid;
-  } catch { if (!cached?.valid) setSupporter(false, 'Could not verify the license while offline. Try again when connected.'); return Boolean(cached?.valid); }
+  } catch { if (!cached?.valid) setSupporter(false, 'Connect to the internet to verify supporter access.'); return Boolean(cached?.valid); }
 }
 
 async function initLicense() {
@@ -261,7 +274,7 @@ function setupServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   let updateRequested = false;
   navigator.serviceWorker.register('/sw.js').then((registration) => {
-    const announce = () => showToast('A fresh version is ready.', { label: 'Update now', run: () => { updateRequested = true; registration.waiting?.postMessage({ type: 'SKIP_WAITING' }); } }, 30_000);
+    const announce = () => showToast('A Quarter sheet update is ready.', { label: 'Install update', run: () => { updateRequested = true; registration.waiting?.postMessage({ type: 'SKIP_WAITING' }); } }, 30_000);
     if (registration.waiting) announce();
     watchForServiceWorkerUpdate(registration, () => Boolean(navigator.serviceWorker.controller), announce);
   }).catch(() => { /* The ledger remains usable without installation support. */ });
@@ -269,10 +282,11 @@ function setupServiceWorker() {
 }
 
 function bindEvents() {
-  $('#tax-year').addEventListener('change', (event) => { year = Number((event.target as HTMLSelectElement).value); localStorage.setItem('quarter-sheet:year', String(year)); quarterIndex = findCurrentQuarter(); render(); });
+  $('#tax-year').addEventListener('change', (event) => { year = Number((event.target as HTMLSelectElement).value); localStorage.setItem(storageKey('quarter-sheet:year'), String(year)); quarterIndex = findCurrentQuarter(); render(); });
   $('#quarter-tabs').addEventListener('click', (event) => { const button = (event.target as Element).closest<HTMLButtonElement>('[data-quarter]'); if (button) { quarterIndex = Number(button.dataset.quarter); render(); } });
   $('#quarter-tabs').addEventListener('keydown', (event) => { if (!['ArrowLeft', 'ArrowRight'].includes((event as KeyboardEvent).key)) return; event.preventDefault(); const direction = (event as KeyboardEvent).key === 'ArrowRight' ? 1 : -1; const focused = Number((event.target as HTMLButtonElement).dataset.quarter); quarterIndex = (focused + direction + 4) % 4; render(); document.querySelector<HTMLButtonElement>(`[data-quarter="${quarterIndex}"]`)?.focus(); });
   $('#add-entry').addEventListener('click', () => openEntryDialog());
+  $('#hero-add-entry').addEventListener('click', () => openEntryDialog());
   $('#entry-form').addEventListener('submit', (event) => void handleEntrySubmit(event as SubmitEvent));
   document.querySelectorAll<HTMLInputElement>('input[name="entry-type"]').forEach((radio) => radio.addEventListener('change', () => categoryOptions(radio.value as EntryType)));
   $('#entry-category').addEventListener('change', updateCategoryHelp);
@@ -283,9 +297,22 @@ function bindEvents() {
   $('#backup-form').addEventListener('submit', (event) => void handleBackup(event as SubmitEvent));
   $('#restore-form').addEventListener('submit', (event) => void handleRestore(event as SubmitEvent));
   $('#restore-license').addEventListener('click', () => ($('#license-dialog') as HTMLDialogElement).showModal());
-  $('#license-form').addEventListener('submit', async (event) => { event.preventDefault(); const token = ($('#license-token') as HTMLInputElement).value.trim(); if (!token) return; localStorage.setItem(licenseKey, token); const valid = await verifyLicense(token, true); if (valid) { ($('#license-dialog') as HTMLDialogElement).close(); showToast('Supporter unlock restored. Thank you.'); } else $('#license-error').textContent = 'That license could not be verified. Check the token and try again.'; });
+  $('#license-form').addEventListener('submit', async (event) => { event.preventDefault(); const token = ($('#license-token') as HTMLInputElement).value.trim(); if (!token) return; localStorage.setItem(licenseKey, token); const valid = await verifyLicense(token, true); if (valid) { ($('#license-dialog') as HTMLDialogElement).close(); showToast('Supporter access restored. Thank you.'); } else $('#license-error').textContent = 'Supporter access could not be verified. Check the token and try again.'; });
   window.addEventListener('online', updateConnection);
   window.addEventListener('offline', updateConnection);
+  if (isDemo) {
+    $('#reset-demo').addEventListener('click', () => void resetDemo());
+    $('#start-real').addEventListener('click', () => { location.assign('/'); });
+  }
+}
+
+async function resetDemo() {
+  await clearEntries();
+  await replaceEntries(demoEntries(year));
+  entries = await listEntries();
+  quarterIndex = findCurrentQuarter();
+  render();
+  showToast('Sample records reset.');
 }
 
 async function updateConnection() {
@@ -298,17 +325,34 @@ async function updateConnection() {
 }
 
 async function init() {
+  useLedgerNamespace(isDemo);
+  document.documentElement.dataset.mode = isDemo ? 'demo' : 'real';
+  if (isDemo) {
+    document.title = 'Demo — Quarter sheet';
+    document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', 'https://mtd-quarterly-ledger.sociobot.in/demo/');
+    document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute('content', 'Demo — Quarter sheet');
+    $('#route-announcement').textContent = 'Demo ledger loaded.';
+    ($('#demo-banner') as HTMLElement).hidden = false;
+    requestAnimationFrame(() => ($('#page-title') as HTMLElement).focus());
+  }
   renderYearOptions();
   renderCategoryReference();
   quarterIndex = findCurrentQuarter();
   bindEvents();
   updateConnection();
-  try { entries = await listEntries(); render(); }
+  try {
+    entries = await listEntries();
+    if (isDemo && entries.length === 0) {
+      await replaceEntries(demoEntries(year));
+      entries = await listEntries();
+    }
+    render();
+  }
   catch {
     $('#ledger-state').innerHTML = '<div class="error-state"><h3>Local storage is unavailable</h3><p>Your browser may be blocking site data. Allow storage for this site, then reload before entering records.</p><button class="button secondary" id="storage-reload" type="button">Reload ledger</button></div>';
     $('#storage-reload').addEventListener('click', () => location.reload());
   }
-  void initLicense();
+  if (!isDemo) void initLicense();
   setupServiceWorker();
 }
 
