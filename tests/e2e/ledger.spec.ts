@@ -64,7 +64,7 @@ test('refuses a date outside the selected quarter even when HTML bounds are bypa
 
 test('uses the production Sociobot checkout', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByText('Pay $19 once.')).toBeVisible();
+  await expect(page.getByText('Pay US$19 once.')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Buy supporter access on Sociobot' })).toHaveAttribute(
     'href',
     'https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout'
@@ -79,7 +79,7 @@ test('has no serious accessibility issues or load errors on every route', async 
     page.on('pageerror', recordPageError);
     page.on('console', recordConsoleError);
     await page.goto(path);
-    if (path === '/' || path === '/demo/') await expect(page.locator('#ledger-state')).not.toContainText('Opening your local ledger');
+    if (path === '/' || path === '/demo/') await expect(page.locator('#ledger-state')).not.toContainText('Opening your ledger');
     const result = await new AxeBuilder({ page: page as never }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
     expect(result.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? '')), path).toEqual([]);
     const unexpectedErrors = path.includes('definitely-not-a-real-route') ? errors.filter((message) => !message.includes('status of 404')) : errors;

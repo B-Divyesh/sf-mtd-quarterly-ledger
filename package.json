@@ -8,7 +8,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build",
     "preview": "node scripts/preview.mjs",
-    "test": "vitest run tests/ledger.test.ts",
+    "test": "vitest run tests/ledger.test.ts tests/copy-audit.test.ts",
     "test:e2e": "playwright test",
     "test:claims": "playwright test --project=desktop"
   },

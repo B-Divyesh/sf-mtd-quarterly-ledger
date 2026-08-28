@@ -403,9 +403,9 @@ test('@claim:no-vat-payroll-bank exposes no VAT, payroll, or bank connection wor
   for (const name of [/connect.*bank/i, /run.*payroll/i, /submit.*vat/i]) await expect(page.getByRole('button', { name })).toHaveCount(0);
 });
 
-test('@claim:supporter-price verifies the one-time $19 USD production checkout without payment', async ({ page, request }) => {
+test('@claim:supporter-price verifies the one-time US$19 production checkout without payment', async ({ page, request }) => {
   await page.goto('/demo/');
-  await expect(page.getByText('Pay $19 once.')).toBeVisible();
+  await expect(page.getByText('Pay US$19 once.')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Buy supporter access on Sociobot' })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout');
   const checkout = await request.get('https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout', { maxRedirects: 5, timeout: 30_000 });
   expect(checkout.status()).toBe(200);
@@ -432,33 +432,37 @@ test('@claim:pwa-install exposes a standalone manifest, complete icons, and an o
 });
 
 test('@claim:route-metadata gives real routes distinct metadata, focus, navigation, reloads, and a true 404', async ({ page, request }) => {
-  const routes = [
-    ['/', 'Quarter sheet — quarterly income and expense ledger', 'https://mtd-quarterly-ledger.sociobot.in/'],
-    ['/demo/', 'Demo — Quarter sheet', 'https://mtd-quarterly-ledger.sociobot.in/demo/'],
-    ['/privacy/', 'Privacy — Quarter sheet', 'https://mtd-quarterly-ledger.sociobot.in/privacy/'],
-    ['/terms/', 'Terms — Quarter sheet', 'https://mtd-quarterly-ledger.sociobot.in/terms/']
+  const routes: Array<[path: string, status: number, title: string, canonical: string]> = [
+    ['/', 200, 'Quarter sheet — quarterly income and expense ledger', 'https://mtd-quarterly-ledger.sociobot.in/'],
+    ['/demo/', 200, 'Demo — Quarter sheet', 'https://mtd-quarterly-ledger.sociobot.in/demo/'],
+    ['/privacy/', 200, 'Privacy — Quarter sheet', 'https://mtd-quarterly-ledger.sociobot.in/privacy/'],
+    ['/terms/', 200, 'Terms — Quarter sheet', 'https://mtd-quarterly-ledger.sociobot.in/terms/'],
+    ['/definitely-not-a-real-route', 404, 'Page not found — Quarter sheet', 'https://mtd-quarterly-ledger.sociobot.in/404.html']
   ];
-  for (const [path, title, canonical] of routes) {
-    expect((await request.get(path)).status()).toBe(200);
-    await page.goto(path);
+  const footerLabels = new Set<string>();
+  for (const [path, status, title, canonical] of routes) {
+    expect((await request.get(path)).status()).toBe(status);
+    const initial = await page.goto(path);
+    expect(initial?.status()).toBe(status);
     await expect(page).toHaveTitle(title);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', canonical);
-    for (const selector of ['meta[property="og:title"]', 'meta[property="og:description"]', 'meta[property="og:image"]', 'meta[name="twitter:card"]', 'meta[name="twitter:title"]', 'meta[name="twitter:description"]', 'meta[name="twitter:image"]', 'link[rel="apple-touch-icon"]']) await expect(page.locator(selector), `${path} ${selector}`).toHaveCount(1);
+    for (const selector of ['meta[name="description"]', 'meta[property="og:type"]', 'meta[property="og:url"]', 'meta[property="og:title"]', 'meta[property="og:description"]', 'meta[property="og:image"]', 'meta[name="twitter:card"]', 'meta[name="twitter:title"]', 'meta[name="twitter:description"]', 'meta[name="twitter:image"]', 'link[rel="icon"]', 'link[rel="apple-touch-icon"]']) await expect(page.locator(selector), `${path} ${selector}`).toHaveCount(1);
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', canonical);
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('main')).toHaveCount(1);
     await expect(page.locator('h1')).toBeFocused();
-    await page.reload();
+    footerLabels.add((await page.locator('footer [data-build-label]').textContent())?.trim() || '');
+    const reloaded = await page.reload();
+    expect(reloaded?.status()).toBe(status);
+    await expect(page).toHaveTitle(title);
     await expect(page.locator('h1')).toBeFocused();
   }
+  expect(footerLabels).toEqual(new Set(['Built by Param Factory · v1.0.0 · polish 3']));
   await page.goto('/');
   await page.getByRole('link', { name: 'Privacy' }).first().click();
   await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
   await page.goBack();
   await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
-  const missing = await page.goto('/definitely-not-a-real-route');
-  expect(missing?.status()).toBe(404);
-  await expect(page).toHaveTitle('Page not found — Quarter sheet');
-  await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeFocused();
 });
 
 test('@claim:security-privacy serves restrictive headers and only self-hosted scripts, fonts, and images', async ({ page, request }) => {

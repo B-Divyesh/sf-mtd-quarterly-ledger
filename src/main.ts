@@ -1,4 +1,5 @@
 import './style.css';
+import { renderBuildLabel } from './build';
 import { decryptBackup, encryptBackup } from './backup';
 import { clearEntries, deleteEntry, listEntries, replaceEntries, saveEntry, useLedgerNamespace } from './db';
 import { downloadBlob, toCsv } from './exports';
@@ -421,6 +422,7 @@ async function updateConnection() {
 }
 
 async function init() {
+  renderBuildLabel();
   useLedgerNamespace(isDemo);
   document.documentElement.dataset.mode = isDemo ? 'demo' : 'real';
   if (isDemo) {

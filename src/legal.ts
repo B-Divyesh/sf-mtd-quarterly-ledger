@@ -1,4 +1,5 @@
 import './style.css';
+import { renderBuildLabel } from './build';
 
 function focusRoute() {
   const heading = document.querySelector<HTMLElement>('main h1');
@@ -7,5 +8,5 @@ function focusRoute() {
   if (live && heading) live.textContent = `${heading.textContent} loaded.`;
 }
 
-window.addEventListener('DOMContentLoaded', focusRoute);
+window.addEventListener('DOMContentLoaded', () => { renderBuildLabel(); focusRoute(); });
 window.addEventListener('pageshow', (event) => { if (event.persisted) focusRoute(); });

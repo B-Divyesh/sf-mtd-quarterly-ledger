@@ -1,1 +1,1 @@
-Track UK sole-trader income and expenses each quarter, then export CSV or XLSX.
+Track quarterly income and expenses for UK sole traders, then export CSV or XLSX.
