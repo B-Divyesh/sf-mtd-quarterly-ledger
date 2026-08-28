@@ -47,6 +47,6 @@ Deploy `dist/` as the static artifact. The factory deployment uses `public/stati
 
 ## Known gaps
 
-None known. Lighthouse was not run in this container; bundle-size evidence and automated accessibility coverage are recorded above.
+No product or review blocker is known. Lighthouse CLI could not attach to the container’s Playwright Chromium; bundle-size evidence and automated accessibility coverage are recorded above.
 
 Repair commit: `291342f02001599aae4090cf9a276b351f172693` (amended only to record this clean-clone evidence).
