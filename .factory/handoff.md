@@ -1,4 +1,4 @@
-# Polish 2 handoff — pending live recheck
+# Polish 2 handoff — accepted
 
 ## Repair
 
@@ -26,6 +26,12 @@ npm run test:e2e -- --workers=1
 
 Run the exact claim commands listed in `.factory/claims.json` individually. Deploy `dist/` as the static site output.
 
-## Remaining work
+## Deployment and live recheck
 
-Push and complete the required cold live check of home, demo, legal routes, 404, offline behavior, and the read-only checkout before accepting the repair. Add the resulting deployment and live evidence below.
+- Static deployment `9b2cb60f-d202-4ce4-8f5b-185977897bbb` completed successfully through the factory static work-order configuration.
+- Cold live home now exposes **Stored in this browser**, **Import CSV**, and **Pay $19 once**. `/`, `/demo/`, `/?demo=1`, `/privacy/`, and `/terms/` return 200; an unknown route returns 404.
+- Cold 390px demo has the persistent safe-demo banner, £850.00 income, £164.80 expenses, the Import CSV control, and no error state.
+- Live `verify-url.sh` on home, demo, and privacy found no console errors, missing alt attributes, or unnamed buttons. Home title/lang/h1/main are all correct.
+- The read-only Sociobot checkout starts in USD and exposes $19.00, price 1900, and `one_time`, matching public product copy and the executed claim test.
+
+No known product gaps remain. The standalone Axe CLI could not launch because its downloaded ChromeDriver does not match the supplied Chromium; the committed Playwright Axe integration passed serious/critical checks on all routes.
