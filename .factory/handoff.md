@@ -29,6 +29,7 @@ Results:
 - `npm test` passed: 7/7 unit tests.
 - `npm run test:e2e` passed: 42/42 Playwright checks, serially across desktop and 390 px mobile. This includes axe serious/critical checks, offline reload with `context.setOffline(true)`, demo namespace isolation/reset, downloads, receipt persistence, encrypted-backup opacity, route focus, keyboard tabs, and network interception.
 - Claims registry validation printed: `claims: 16 each tagged exactly once`.
+- A separate clean clone at `/tmp/mtd-quarterly-ledger-clean.7n2kbX` passed `npm ci`, `npm run build`, `npm test`, and `npm run test:e2e` (42/42). It then ran all 16 commands declared in `.factory/claims.json`, one at a time, with a passing final Playwright result.
 - Production-size build output: initial app JS 22.84 KB (8.38 KB gzip), CSS 18.11 KB (4.83 KB gzip), local font 14.71 KB, mobile hero 10.33 KB, desktop hero 55.39 KB. All are below the static PWA budgets.
 - Static preview returned 200 for `/demo/`; the deployed Azure Static Web Apps configuration now has no navigation fallback, so unknown paths reach the configured 404 response rewrite with status 404.
 
@@ -46,3 +47,5 @@ Deploy `dist/` as the static artifact. The factory deployment uses `public/stati
 ## Known gaps
 
 None known. Lighthouse was not run in this container; bundle-size evidence and automated accessibility coverage are recorded above.
+
+Repair commit: `291342f02001599aae4090cf9a276b351f172693` (amended only to record this clean-clone evidence).
