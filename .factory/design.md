@@ -48,3 +48,7 @@ Sole traders already understand notebooks, receipts and ruled totals. The bluepr
 ## Polish round 1
 
 Demo mode uses the same drafting sheet, but compresses the introduction into a labelled sample workspace. At 390 px, four compact quarter tabs and the selected quarter’s totals fit in the first viewport. This is an intentional demo-only hierarchy change: the landing page explains the job, while the demo immediately shows the job in progress.
+
+## Polish round 2
+
+CSV import follows the same drafting-sheet grammar: it is a local work tray, not a generic upload card. A user maps columns, reads the ruled preview, and explicitly confirms only accepted rows. Rejected rows stay visible as short red-pencil notes, while the existing cyan action marks the one irreversible-looking step; nothing is written until that action. The new supporter badge uses the existing cream annotation token rather than adding a paid-tier visual language.

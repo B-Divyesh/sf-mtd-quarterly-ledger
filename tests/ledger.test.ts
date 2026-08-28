@@ -4,6 +4,7 @@ import { toCsv } from '../src/exports';
 import { toXlsx } from '../src/xlsx';
 import { decryptBackup, encryptBackup } from '../src/backup';
 import { watchForServiceWorkerUpdate } from '../src/service-worker-update';
+import { parseCsv, previewImport } from '../src/import';
 
 const row: LedgerEntry = {
   id: 'one', date: '2026-04-06', type: 'income', amountPence: 125050,
@@ -75,6 +76,17 @@ describe('exports', () => {
     const bytes = new Uint8Array(await toXlsx([row]).arrayBuffer());
     expect(String.fromCharCode(bytes[0], bytes[1])).toBe('PK');
     expect(bytes.length).toBeGreaterThan(800);
+  });
+});
+
+describe('CSV import', () => {
+  it('parses quoted values and rejects duplicates and dates outside the selected quarter', () => {
+    const csv = parseCsv('When,Details,Value,Direction\n2026-07-12,"Invoice, July",45.50,income\n2026-06-01,Outside,5.00,income\n2026-07-12,"Invoice, July",45.50,income');
+    const preview = previewImport(csv, { date: 'When', description: 'Details', amount: 'Value', type: 'Direction', fallbackType: 'income', categoryId: 'turnover' }, quartersFor(2026)[1], []);
+    expect(preview.accepted).toHaveLength(1);
+    expect(preview.accepted[0].note).toBe('Invoice, July');
+    expect(preview.duplicates).toBe(1);
+    expect(preview.rejected[0]).toContain('date in this quarter');
   });
 });
 

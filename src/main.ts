@@ -2,6 +2,7 @@ import './style.css';
 import { decryptBackup, encryptBackup } from './backup';
 import { clearEntries, deleteEntry, listEntries, replaceEntries, saveEntry, useLedgerNamespace } from './db';
 import { downloadBlob, toCsv } from './exports';
+import { parseCsv, previewImport, suggestedColumn, type CsvRows, type ImportMapping, type ImportPreview } from './import';
 import { watchForServiceWorkerUpdate } from './service-worker-update';
 import { amountToPence, categories, categoryById, dateInQuarter, formatDate, inQuarter, money, quartersFor, taxYearFor, type EntryType, type LedgerEntry } from './types';
 
@@ -17,6 +18,8 @@ let entries: LedgerEntry[] = [];
 let undoEntry: LedgerEntry | null = null;
 let undoTimer = 0;
 let toastTimer = 0;
+let importCsv: CsvRows | null = null;
+let importPreview: ImportPreview | null = null;
 
 function demoEntries(taxYear: number): LedgerEntry[] {
   const timestamp = `${taxYear}-05-20T09:00:00.000Z`;
@@ -87,7 +90,7 @@ function render() {
 function renderLedger(visible: LedgerEntry[]) {
   const state = $('#ledger-state');
   if (!visible.length) {
-    state.innerHTML = `<div class="empty-state"><div class="registration-mark" aria-hidden="true">＋</div><h3>This quarter is an empty sheet</h3><p>Add your first income or expense. It stays on this device and appears in your export.</p><button class="button primary" id="empty-add" type="button">Add first transaction</button></div>`;
+    state.innerHTML = `<div class="empty-state"><div class="registration-mark" aria-hidden="true">＋</div><h3>This quarter is an empty sheet</h3><p>Add your first income or expense. It stays in this browser and appears in your export.</p><button class="button primary" id="empty-add" type="button">Add first transaction</button></div>`;
     $('#empty-add').addEventListener('click', () => openEntryDialog());
     return;
   }
@@ -168,7 +171,7 @@ async function handleEntrySubmit(event: SubmitEvent) {
     entries = await listEntries();
     ($('#entry-dialog') as HTMLDialogElement).close();
     render();
-    showToast(existing ? 'Transaction updated.' : 'Transaction saved on this device.');
+    showToast(existing ? 'Transaction updated.' : 'Transaction saved in this browser.');
   } catch { error.textContent = 'This transaction could not be saved. Check that browser storage is available and try again.'; }
 }
 
@@ -225,7 +228,7 @@ async function handleRestore(event: SubmitEvent) {
   if (!file || !passphrase) { $('#backup-error').textContent = 'Choose a backup file and enter its passphrase.'; return; }
   try {
     const restored = await decryptBackup(file, passphrase);
-    if (!confirm(`Replace this device's ${entries.length} transaction${entries.length === 1 ? '' : 's'} with ${restored.length} from the backup?`)) return;
+    if (!confirm(`Replace this browser's ${entries.length} transaction${entries.length === 1 ? '' : 's'} with ${restored.length} from the backup?`)) return;
     await replaceEntries(restored);
     entries = await listEntries();
     ($('#backup-dialog') as HTMLDialogElement).close();
@@ -240,11 +243,74 @@ const billingBase = import.meta.env.VITE_BILLING_BASE || 'https://api.sociobot.i
 
 function setSupporter(active: boolean, message?: string) {
   document.documentElement.classList.toggle('supporter', active);
+  ($('#supporter-badge') as HTMLElement).hidden = !active;
   const lastBackup = localStorage.getItem(storageKey('quarter-sheet:last-backup'));
   const backupDue = !lastBackup || Date.now() - new Date(lastBackup).getTime() > 30 * 86_400_000;
   const backupDate = lastBackup ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(lastBackup)) : '';
-  $('#license-status').textContent = message ?? (active ? `Supporter access is active.${backupDue ? ' Your encrypted backup is due.' : ` Your last backup was ${backupDate}.`}` : 'No supporter access on this device.');
+  $('#license-status').textContent = message ?? (active ? `Supporter access is active.${backupDue ? ' Your encrypted backup is due.' : ` Your last backup was ${backupDate}.`}` : 'No supporter access in this browser.');
   $('#buy-license').textContent = active ? 'Supporter access is active' : 'Buy supporter access on Sociobot';
+}
+
+function fillImportOptions(select: HTMLSelectElement, headers: string[], selected: string, allowBlank = false) {
+  select.innerHTML = `${allowBlank ? '<option value="">No type column</option>' : ''}${headers.map((header) => `<option value="${escapeHtml(header)}">${escapeHtml(header)}</option>`).join('')}`;
+  select.value = selected;
+}
+
+function importMapping(): ImportMapping {
+  return {
+    date: ($('#import-date') as HTMLSelectElement).value,
+    description: ($('#import-description') as HTMLSelectElement).value,
+    amount: ($('#import-amount') as HTMLSelectElement).value,
+    type: ($('#import-type') as HTMLSelectElement).value,
+    fallbackType: document.querySelector<HTMLInputElement>('input[name="import-fallback-type"]:checked')!.value as EntryType,
+    categoryId: ($('#import-category') as HTMLSelectElement).value
+  };
+}
+
+function renderImportPreview(preview?: ImportPreview) {
+  const target = $('#import-preview');
+  const confirm = $('#confirm-import') as HTMLButtonElement;
+  if (!preview) { target.textContent = ''; confirm.disabled = true; return; }
+  const rejected = preview.rejected.length ? `<ul>${preview.rejected.slice(0, 8).map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : '';
+  target.innerHTML = `<strong>${preview.accepted.length} row${preview.accepted.length === 1 ? '' : 's'} ready to import.</strong> ${preview.duplicates} duplicate${preview.duplicates === 1 ? '' : 's'} skipped. ${preview.rejected.length} row${preview.rejected.length === 1 ? '' : 's'} rejected.${rejected}`;
+  confirm.disabled = preview.accepted.length === 0;
+}
+
+async function readImportFile() {
+  const file = ($('#import-file') as HTMLInputElement).files?.[0];
+  const error = $('#import-error');
+  error.textContent = '';
+  renderImportPreview();
+  if (!file) return;
+  if (!/\.csv$/i.test(file.name) && file.type !== 'text/csv') { error.textContent = 'Choose a CSV file, then try again.'; return; }
+  importCsv = parseCsv(await file.text());
+  if (importCsv.headers.length < 3 || importCsv.rows.length === 0) { error.textContent = 'That CSV needs a header row and at least one transaction row.'; return; }
+  fillImportOptions($('#import-date') as HTMLSelectElement, importCsv.headers, suggestedColumn(importCsv.headers, 'date'));
+  fillImportOptions($('#import-description') as HTMLSelectElement, importCsv.headers, suggestedColumn(importCsv.headers, 'description'));
+  fillImportOptions($('#import-amount') as HTMLSelectElement, importCsv.headers, suggestedColumn(importCsv.headers, 'amount'));
+  fillImportOptions($('#import-type') as HTMLSelectElement, importCsv.headers, suggestedColumn(importCsv.headers, 'type'), true);
+  const category = $('#import-category') as HTMLSelectElement;
+  category.innerHTML = categories.map((item) => `<option value="${item.id}">${escapeHtml(item.label)} · ${escapeHtml(item.box)}</option>`).join('');
+  category.value = 'turnover';
+  ($('#import-mapping') as HTMLElement).hidden = false;
+}
+
+function previewCsvImport() {
+  const error = $('#import-error');
+  error.textContent = '';
+  if (!importCsv) { error.textContent = 'Choose a CSV file before previewing it.'; return; }
+  importPreview = previewImport(importCsv, importMapping(), selectedQuarter(), entries);
+  renderImportPreview(importPreview);
+}
+
+async function confirmCsvImport(event: SubmitEvent) {
+  event.preventDefault();
+  if (!importPreview?.accepted.length) { $('#import-error').textContent = 'Preview accepted rows before importing them.'; return; }
+  for (const entry of importPreview.accepted) await saveEntry(entry);
+  entries = await listEntries();
+  ($('#import-dialog') as HTMLDialogElement).close();
+  render();
+  showToast(`${importPreview.accepted.length} transaction${importPreview.accepted.length === 1 ? '' : 's'} imported into this browser.`);
 }
 
 async function verifyLicense(token: string, force = false) {
@@ -299,6 +365,18 @@ function bindEvents() {
   document.querySelectorAll<HTMLButtonElement>('[data-close]').forEach((button) => button.addEventListener('click', () => ($('#' + button.dataset.close!) as HTMLDialogElement).close()));
   $('#export-csv').addEventListener('click', () => { downloadBlob(new Blob([toCsv(selectedEntries())], { type: 'text/csv;charset=utf-8' }), exportName('csv')); showToast('Quarter CSV exported.'); });
   $('#export-xlsx').addEventListener('click', async () => { const { toXlsx } = await import('./xlsx'); downloadBlob(toXlsx(selectedEntries()), exportName('xlsx')); showToast('Quarter XLSX exported.'); });
+  $('#import-csv').addEventListener('click', () => {
+    importCsv = null; importPreview = null;
+    ($('#import-form') as HTMLFormElement).reset();
+    ($('#import-mapping') as HTMLElement).hidden = true;
+    $('#import-error').textContent = '';
+    renderImportPreview();
+    ($('#import-dialog') as HTMLDialogElement).showModal();
+    requestAnimationFrame(() => ($('#import-file') as HTMLInputElement).focus());
+  });
+  $('#import-file').addEventListener('change', () => void readImportFile());
+  $('#preview-import').addEventListener('click', previewCsvImport);
+  $('#import-form').addEventListener('submit', (event) => void confirmCsvImport(event as SubmitEvent));
   $('#backup-open').addEventListener('click', () => { $('#backup-error').textContent = ''; ($('#backup-dialog') as HTMLDialogElement).showModal(); });
   $('#backup-form').addEventListener('submit', (event) => void handleBackup(event as SubmitEvent));
   $('#restore-form').addEventListener('submit', (event) => void handleRestore(event as SubmitEvent));

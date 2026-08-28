@@ -10,25 +10,25 @@ Audited 28 August 2026. Counts use whitespace-separated words. Variable text is 
 | 10 | Your ledger still works; exports and local backups are available. |
 | 13 | For UK sole traders keeping Making Tax Digital records without a full accounting suite. |
 | 7 | Sample data opens a populated quarterly ledger. |
-| 4 | Stored on this device. |
+| 5 | Stored in this browser. |
 | 6 | Works offline after the first visit. |
 | 6 | Core ledger and exports are free. |
 | 2 | Records only. |
 | 14 | Quarter sheet does not submit updates to HMRC and does not give tax advice. |
 | 7 | Add your first income or expense. |
-| 10 | It stays on this device and appears in your export. |
+| 10 | It stays in this browser and appears in your export. |
 | 8 | Based on the 2025–26 SA103F, HMRC’s self-employment form. |
 | 7 | Check current HMRC guidance if unsure. |
 | 10 | Record money in and out with a date and category. |
 | 8 | See income, expenses, and category mappings together. |
 | 8 | Download CSV or XLSX for your accounting software. |
-| 4 | Pay £19 once. |
+| 4 | Pay $19 once. |
 | 8 | Get a supporter badge and backup reminders. |
 | 7 | Ledger, receipts, backups and exports stay free. |
 | 10 | Download an encrypted copy of every tax year and receipt. |
 | 7 | Keep the passphrase separately—we cannot recover it. |
 | 5 | Use at least 10 characters. |
-| 8 | Restore replaces the ledger currently on this device. |
+| 8 | Restore replaces the ledger currently in this browser. |
 | 6 | Date, amount, and category are required. |
 
 ## Validation, status, and error sentences
@@ -47,7 +47,7 @@ Audited 28 August 2026. Counts use whitespace-separated words. Variable text is 
 | 12 | That receipt is over 5 MB. Choose a smaller image or PDF. |
 | 7 | This transaction could not be saved. |
 | 9 | Check that browser storage is available and try again. |
-| 3 | Transaction saved on this device. |
+| 3 | Transaction saved in this browser. |
 | 2 | Transaction updated. |
 | 2 | Transaction deleted. |
 | 2 | Transaction restored. |
@@ -79,6 +79,21 @@ Audited 28 August 2026. Counts use whitespace-separated words. Variable text is 
 | 3 | Sample records reset. |
 
 No sentence exceeds 22 words. No sentence contains a banned marketing word.
+
+## Polish round 2 additions
+
+| Words | Sentence |
+|---:|---|
+| 11 | Choose a CSV, check the preview, then add accepted rows to this quarter. |
+| 10 | Download the sample CSV to see the expected columns. |
+| 8 | Leave blank to use the choice below. |
+| 11 | Rows that do not match this category type are shown as rejected. |
+| 7 | Preview rows and add them to this quarter. |
+| 7 | No supporter access in this browser. |
+| 6 | Transactions imported into this browser. |
+| 15 | The demo uses separate browser storage, so it never reads or changes your real ledger. |
+
+All additions are under 22 words and use the existing terminology.
 
 ## Terminology
 

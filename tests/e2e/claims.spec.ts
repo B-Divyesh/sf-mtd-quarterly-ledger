@@ -25,11 +25,17 @@ test('@claim:demo-isolation keeps sample and real storage separate', async ({ pa
   await expect(page.getByText('July tutoring invoices')).toBeVisible();
   await expect(page.getByText('Real namespace marker')).toHaveCount(0);
   await add(page, 'Demo namespace marker', '67.89');
+  await page.getByRole('button', { name: 'Import CSV' }).click();
+  await page.getByLabel('CSV file').setInputFiles({ name: 'isolated.csv', mimeType: 'text/csv', buffer: Buffer.from('date,description,amount,type\n2026-07-24,Imported demo marker,15.00,income') });
+  await page.getByRole('button', { name: 'Preview import' }).click();
+  await page.getByRole('button', { name: 'Import accepted rows' }).click();
+  await expect(page.getByText('Imported demo marker')).toBeVisible();
   const databases = await page.evaluate(async () => (await indexedDB.databases()).map((db) => db.name));
   expect(databases).toEqual(expect.arrayContaining(['quarter-sheet-ledger', 'demo:quarter-sheet-ledger']));
   await page.goto('/');
   await expect(page.getByText('Real namespace marker')).toBeVisible();
   await expect(page.getByText('Demo namespace marker')).toHaveCount(0);
+  await expect(page.getByText('Imported demo marker')).toHaveCount(0);
 });
 
 test('@claim:demo-reset restores the seed and leaving discards demo changes', async ({ page }) => {
@@ -91,6 +97,33 @@ test('@claim:ledger-core adds, edits, totals, deletes, and restores a transactio
   await expect(page.getByText('Edited example')).toHaveCount(0);
   await page.getByRole('button', { name: 'Undo deletion' }).click();
   await expect(page.getByText('Edited example')).toBeVisible();
+});
+
+test('@claim:csv-import maps columns, previews rejected rows, skips duplicates, cancels, confirms, and works offline', async ({ page, context, request }) => {
+  await page.goto('/demo/');
+  await page.locator('#tax-year').selectOption('2026');
+  await page.getByRole('tab', { name: /Q2/ }).click();
+  await page.getByRole('button', { name: 'Import CSV' }).click();
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await expect(page.getByText('Imported invoice')).toHaveCount(0);
+  expect(await (await request.get('/sample-import.csv')).text()).toContain('August design retainer');
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker?.controller));
+  await context.setOffline(true);
+  await page.getByRole('button', { name: 'Import CSV' }).click();
+  await page.getByLabel('CSV file').setInputFiles({ name: 'bank-export.csv', mimeType: 'text/csv', buffer: Buffer.from(['When,Details,Value,Direction', '2026-07-12,Imported invoice,450.00,income', '2026-07-12,Imported invoice,450.00,income', '2026-06-01,Outside quarter,12.00,income'].join('\n')) });
+  await page.getByLabel('Date column').selectOption('When');
+  await page.getByLabel('Description column').selectOption('Details');
+  await page.getByLabel('Amount column').selectOption('Value');
+  await page.getByLabel('Income or expense column').selectOption('Direction');
+  await page.getByLabel('Category for imported rows').selectOption('turnover');
+  await page.getByRole('button', { name: 'Preview import' }).click();
+  await expect(page.locator('#import-preview')).toContainText('1 row ready to import.');
+  await expect(page.locator('#import-preview')).toContainText('1 duplicate skipped.');
+  await expect(page.locator('#import-preview')).toContainText('1 row rejected.');
+  await page.getByRole('button', { name: 'Import accepted rows' }).click();
+  await expect(page.getByText('Imported invoice')).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('Imported invoice')).toBeVisible();
 });
 
 test('@claim:entry-persistence retains a transaction after refresh', async ({ page }) => {
@@ -232,13 +265,13 @@ test('@claim:validation enforces quarter dates, positive pence, note length, and
   await page.getByRole('tab', { name: /Q1/ }).click();
   await page.getByRole('button', { name: 'Add transaction' }).click();
   await page.locator('#entry-date').evaluate((input: HTMLInputElement) => { input.min = ''; input.max = ''; });
-  await page.getByLabel('Date').fill('2026-07-06');
+  await page.getByLabel('Date', { exact: true }).fill('2026-07-06');
   await page.getByLabel('Amount (£)').fill('12.345');
   await page.getByLabel(/^Note/).fill('x'.repeat(141));
   expect((await page.getByLabel(/^Note/).inputValue()).length).toBe(140);
   await page.getByRole('button', { name: 'Save transaction' }).click();
   await expect(page.locator('#entry-error')).toContainText('6 Apr 2026 to 5 Jul 2026');
-  await page.getByLabel('Date').fill('2026-04-06');
+  await page.getByLabel('Date', { exact: true }).fill('2026-04-06');
   await page.getByRole('button', { name: 'Save transaction' }).click();
   await expect(page.locator('#entry-error')).toContainText('positive amount');
   await page.getByRole('button', { name: 'Cancel' }).click();
@@ -282,7 +315,7 @@ test('@claim:reduced-motion removes meaningful transitions and spinner loops', a
 
 test('@claim:free-core keeps ledger, receipt, export, and backup controls available without supporter access', async ({ page }) => {
   await page.goto('/demo/');
-  await expect(page.getByText('No supporter access on this device.')).toBeVisible();
+  await expect(page.getByText('No supporter access in this browser.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Add transaction' })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Export CSV' })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Export XLSX' })).toBeEnabled();
@@ -317,6 +350,19 @@ test('@claim:license-verification stores, strips, verifies, caches, and restores
   expect(verificationUrls).toHaveLength(1);
 });
 
+test('@claim:supporter-benefits shows the supporter badge and both backup reminder states', async ({ page }) => {
+  await page.route('https://api.sociobot.in/**', async (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ valid: true, reason: 'ok' }) }));
+  await page.goto('/?license=benefit-token');
+  await expect(page.getByText('SUPPORTER', { exact: true })).toBeVisible();
+  await expect(page.locator('#license-status')).toContainText('Your encrypted backup is due.');
+  await page.getByRole('button', { name: 'Back up or restore records' }).click();
+  await page.getByLabel('Backup passphrase').first().fill('supporter benefit passphrase');
+  const pending = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download encrypted backup' }).click();
+  await pending;
+  await expect(page.locator('#license-status')).toContainText('Your last backup was');
+});
+
 test('@claim:no-hmrc-submission sends no HMRC request while recording and exporting', async ({ page }) => {
   const requests: string[] = [];
   page.on('request', (request) => requests.push(request.url()));
@@ -326,6 +372,20 @@ test('@claim:no-hmrc-submission sends no HMRC request while recording and export
   await page.getByRole('button', { name: 'Export CSV' }).click();
   await pending;
   expect(requests.some((url) => /hmrc/i.test(url))).toBe(false);
+});
+
+test('@claim:no-tax-advice produces records and files, not personal tax calculations or advice', async ({ page }) => {
+  await page.goto('/demo/');
+  await page.getByText('Open category reference').click();
+  await add(page, 'No advice check');
+  await page.getByRole('button', { name: 'Import CSV' }).click();
+  await expect(page.getByText('Choose a CSV, check the preview, then add accepted rows to this quarter.')).toBeVisible();
+  await page.getByRole('button', { name: 'Close CSV import' }).click();
+  const pending = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export CSV' }).click();
+  const csv = await downloadedText(await pending);
+  const visibleText = await page.locator('main').innerText();
+  expect(`${visibleText}\n${csv}`).not.toMatch(/tax due|deductible|you should file|tax liability|personalised tax/i);
 });
 
 test('@claim:no-analytics-account has no account flow, tracker, or third-party request', async ({ page }) => {
@@ -343,10 +403,16 @@ test('@claim:no-vat-payroll-bank exposes no VAT, payroll, or bank connection wor
   for (const name of [/connect.*bank/i, /run.*payroll/i, /submit.*vat/i]) await expect(page.getByRole('button', { name })).toHaveCount(0);
 });
 
-test('@claim:supporter-price shows the one-time £19 offer and production checkout', async ({ page }) => {
+test('@claim:supporter-price verifies the one-time $19 USD production checkout without payment', async ({ page, request }) => {
   await page.goto('/demo/');
-  await expect(page.getByText('Pay £19 once.')).toBeVisible();
+  await expect(page.getByText('Pay $19 once.')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Buy supporter access on Sociobot' })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout');
+  const checkout = await request.get('https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout', { maxRedirects: 5, timeout: 30_000 });
+  expect(checkout.status()).toBe(200);
+  const body = await checkout.text();
+  expect(body).toContain('Pay in <!-- -->USD');
+  expect(body).toMatch(/\\?"session_type\\?"\s*:\s*\\?"one_time\\?"/);
+  expect(body).toMatch(/\\?"price\\?"\s*:\s*1900\s*,\s*\\?"currency\\?"\s*:\s*\\?"USD\\?"/);
 });
 
 test('@claim:pwa-install exposes a standalone manifest, complete icons, and an offline worker', async ({ page, request }) => {
@@ -423,7 +489,7 @@ test('@claim:production-build emits complete static routes within the performanc
   const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { engines?: { node?: string }; devDependencies?: Record<string, string> };
   expect(packageJson.engines?.node).toBe('>=20');
   expect(packageJson.devDependencies?.['@playwright/test']).toBe('1.58.2');
-  for (const file of ['dist/index.html', 'dist/demo/index.html', 'dist/privacy/index.html', 'dist/terms/index.html', 'dist/404.html', 'dist/sw.js', 'dist/manifest.webmanifest']) expect(statSync(file).size).toBeGreaterThan(0);
+  for (const file of ['dist/index.html', 'dist/demo/index.html', 'dist/privacy/index.html', 'dist/terms/index.html', 'dist/404.html', 'dist/sw.js', 'dist/manifest.webmanifest', 'dist/sample-import.csv']) expect(statSync(file).size).toBeGreaterThan(0);
   const assets = readdirSync('dist/assets').map((name) => ({ name, bytes: statSync(`dist/assets/${name}`).size }));
   expect(assets.filter((item) => item.name.endsWith('.js')).reduce((sum, item) => sum + item.bytes, 0)).toBeLessThanOrEqual(200 * 1024);
   expect(assets.filter((item) => item.name.endsWith('.css')).reduce((sum, item) => sum + item.bytes, 0)).toBeLessThanOrEqual(50 * 1024);

@@ -52,7 +52,7 @@ test('refuses a date outside the selected quarter even when HTML bounds are bypa
   // This emulates a script or a browser which does not enforce min/max. The
   // app must still refuse 6 July, which is Q2's first day.
   await page.locator('#entry-date').evaluate((input: HTMLInputElement) => { input.min = ''; input.max = ''; });
-  await page.getByLabel('Date').fill('2026-07-06');
+  await page.getByLabel('Date', { exact: true }).fill('2026-07-06');
   await page.getByLabel('Amount (£)').fill('10.00');
   await page.getByRole('button', { name: 'Save transaction' }).click();
   await expect(page.locator('#entry-error')).toContainText('6 Apr 2026 to 5 Jul 2026');
@@ -64,6 +64,7 @@ test('refuses a date outside the selected quarter even when HTML bounds are bypa
 
 test('uses the production Sociobot checkout', async ({ page }) => {
   await page.goto('/');
+  await expect(page.getByText('Pay $19 once.')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Buy supporter access on Sociobot' })).toHaveAttribute(
     'href',
     'https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout'

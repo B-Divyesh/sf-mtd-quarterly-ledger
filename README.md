@@ -6,7 +6,7 @@ It does not submit updates to HMRC or provide tax advice. It does not handle VAT
 
 ## Try the demo
 
-Open `/demo/` or `/?demo=1`. It loads tutoring income, materials, and travel sample records. The demo uses a separate `demo:` IndexedDB database. **Reset demo** restores its sample. **Start for real** discards demo changes before opening the real ledger.
+Open `/demo/` or `/?demo=1`. It loads tutoring income, materials, and travel sample records. The demo uses separate browser storage, so it never reads or changes your real ledger. **Reset demo** restores its sample. **Start for real** discards demo changes before opening the real ledger.
 
 ## Ledger features
 
@@ -15,6 +15,7 @@ Open `/demo/` or `/?demo=1`. It loads tutoring income, materials, and travel sam
 - Use tax-year quarters running from 6 April to 5 April
 - Check all 15 HMRC self-employment form category references
 - Download CSV or XLSX with seven documented columns
+- Import a CSV locally, map its columns, preview rejected rows, and skip duplicates
 - Restore passphrase-encrypted backups with transactions and receipts
 - Install a local ledger that works offline after the first visit
 
@@ -44,7 +45,7 @@ Deploy the generated `dist/` directory as a static site. It includes the PWA man
 
 ## Privacy and support
 
-Transactions and receipts stay in this browser. There are no analytics or accounts. Supporter access costs £19 once and adds a badge and backup reminders. Ledger, receipts, backups, and exports remain free. Checkout and verification use Sociobot/Dodo; ledger records are never sent with verification.
+Transactions and receipts stay in this browser. There are no analytics or accounts. Supporter access costs $19 once and adds a badge and backup reminders. Ledger, receipts, backups, and exports remain free. Checkout and verification use Sociobot/Dodo; ledger records are never sent with verification.
 
 Read the [privacy notice](/privacy/) and [terms](/terms/). The artwork prompt and generation provenance are in `.factory/design.md`.
 
