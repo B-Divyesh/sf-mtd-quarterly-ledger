@@ -1,5 +1,5 @@
 import './style.css';
 
-window.addEventListener('DOMContentLoaded', () => {
-  document.querySelector<HTMLElement>('h1')?.focus();
-});
+const focusHeading = () => document.querySelector<HTMLElement>('h1')?.focus();
+window.addEventListener('DOMContentLoaded', focusHeading);
+window.addEventListener('pageshow', (event) => { if (event.persisted) focusHeading(); });

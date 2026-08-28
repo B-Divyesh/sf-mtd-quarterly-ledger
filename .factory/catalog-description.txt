@@ -1,1 +1,1 @@
-Track quarterly income and expenses for UK sole traders using Making Tax Digital records.
+Track quarterly income and expenses for UK sole traders, then export CSV or XLSX.

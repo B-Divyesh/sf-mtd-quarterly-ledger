@@ -1,9 +1,9 @@
 {
   "id": "/?source=installed",
-  "name": "Quarter sheet — MTD ledger",
+  "name": "Quarter sheet — quarterly ledger",
   "short_name": "Quarter sheet",
-  "description": "A local-first quarterly ledger for UK sole traders.",
-  "start_url": "/?v=1",
+  "description": "Track quarterly income and expenses in your browser for UK sole traders.",
+  "start_url": "/?v=7",
   "scope": "/",
   "display": "standalone",
   "background_color": "#071b2e",

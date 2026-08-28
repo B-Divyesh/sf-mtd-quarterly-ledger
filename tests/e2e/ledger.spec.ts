@@ -30,6 +30,20 @@ test('legal pages and keyboard quarter tabs are available', async ({ page }) => 
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Terms of use');
 });
 
+test('dialogs manage focus and keyboard submission', async ({ page }) => {
+  await page.goto('/demo/');
+  const opener = page.getByRole('button', { name: 'Add transaction' });
+  await opener.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByLabel('Amount (£)')).toBeFocused();
+  await page.getByLabel('Amount (£)').fill('19.25');
+  await page.getByLabel(/^Note/).fill('Keyboard entry');
+  await page.getByRole('button', { name: 'Save transaction' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByText('Keyboard entry')).toBeVisible();
+  await expect(opener).toBeFocused();
+});
+
 test('refuses a date outside the selected quarter even when HTML bounds are bypassed', async ({ page }) => {
   await page.goto('/');
   await page.locator('#tax-year').selectOption('2026');
@@ -50,19 +64,26 @@ test('refuses a date outside the selected quarter even when HTML bounds are bypa
 
 test('uses the production Sociobot checkout', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('link', { name: 'Buy supporter access' })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Buy supporter access on Sociobot' })).toHaveAttribute(
     'href',
     'https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout'
   );
 });
 
-test('has no serious accessibility issues or load errors', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(error.message));
-  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
-  await page.goto('/');
-  await expect(page.locator('#ledger-state')).not.toContainText('Opening your local ledger');
-  const result = await new AxeBuilder({ page: page as never }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
-  expect(result.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
-  expect(errors).toEqual([]);
+test('has no serious accessibility issues or load errors on every route', async ({ page }) => {
+  for (const path of ['/', '/demo/', '/privacy/', '/terms/', '/definitely-not-a-real-route']) {
+    const errors: string[] = [];
+    const recordPageError = (error: Error) => errors.push(error.message);
+    const recordConsoleError = (message: import('@playwright/test').ConsoleMessage) => { if (message.type() === 'error') errors.push(message.text()); };
+    page.on('pageerror', recordPageError);
+    page.on('console', recordConsoleError);
+    await page.goto(path);
+    if (path === '/' || path === '/demo/') await expect(page.locator('#ledger-state')).not.toContainText('Opening your local ledger');
+    const result = await new AxeBuilder({ page: page as never }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+    expect(result.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? '')), path).toEqual([]);
+    const unexpectedErrors = path.includes('definitely-not-a-real-route') ? errors.filter((message) => !message.includes('status of 404')) : errors;
+    expect(unexpectedErrors, path).toEqual([]);
+    page.off('pageerror', recordPageError);
+    page.off('console', recordConsoleError);
+  }
 });

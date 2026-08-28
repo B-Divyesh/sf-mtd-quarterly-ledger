@@ -44,3 +44,7 @@ Only opacity and transform animate, 160–220ms with ease-out. No ambient or loo
 ## Why it fits
 
 Sole traders already understand notebooks, receipts and ruled totals. The blueprint metaphor adds structure without implying that the app is doing tax work on their behalf: users place each line, see how it maps, and export the measured result. The visual system makes a regulatory obligation feel finite—four boxes on one working sheet.
+
+## Polish round 1
+
+Demo mode uses the same drafting sheet, but compresses the introduction into a labelled sample workspace. At 390 px, four compact quarter tabs and the selected quarter’s totals fit in the first viewport. This is an intentional demo-only hierarchy change: the landing page explains the job, while the demo immediately shows the job in progress.

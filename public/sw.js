@@ -1,7 +1,7 @@
-const VERSION = 'quarter-sheet-v5';
+const VERSION = 'quarter-sheet-v7';
 const SHELL = `${VERSION}-shell`;
 const RUNTIME = `${VERSION}-runtime`;
-const PRECACHE = ['/', '/index.html', '/404.html', '/offline.html', '/manifest.webmanifest', '/icons/mark.svg', '/icons/icon-192.png'];
+const PRECACHE = ['/', '/index.html', '/demo/', '/privacy/', '/terms/', '/404.html', '/offline.html', '/manifest.webmanifest', '/icons/mark.svg', '/icons/icon-192.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
@@ -29,10 +29,22 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET' || new URL(event.request.url).origin !== self.location.origin) return;
   if (event.request.mode === 'navigate') {
     event.respondWith(fetch(event.request).then((response) => {
-      const copy = response.clone();
-      caches.open(RUNTIME).then((cache) => cache.put(event.request, copy));
+      if (response.ok) {
+        const copy = response.clone();
+        caches.open(RUNTIME).then((cache) => cache.put(event.request, copy));
+      }
       return response;
-    }).catch(async () => (await caches.match(event.request, { ignoreVary: true })) || (await caches.match('/index.html')) || caches.match('/offline.html')));
+    }).catch(async () => {
+      const cached = await caches.match(event.request, { ignoreVary: true });
+      if (cached) return cached;
+      const path = new URL(event.request.url).pathname;
+      if (path === '/' || path === '/index.html' || path === '/demo' || path === '/demo/') return (await caches.match('/index.html')) || caches.match('/offline.html');
+      if (!['/privacy', '/privacy/', '/terms', '/terms/'].includes(path)) {
+        const notFound = await caches.match('/404.html');
+        return notFound ? new Response(await notFound.blob(), { status: 404, headers: notFound.headers }) : caches.match('/offline.html');
+      }
+      return caches.match('/offline.html');
+    }));
     return;
   }
   event.respondWith(caches.match(event.request, { ignoreVary: true }).then((cached) => cached || fetch(event.request).then((response) => {

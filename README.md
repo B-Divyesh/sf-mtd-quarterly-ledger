@@ -6,16 +6,17 @@ It does not submit updates to HMRC or provide tax advice. It does not handle VAT
 
 ## Try the demo
 
-Open `/demo/` or `/?demo=1`. It loads tutoring income, materials, and travel sample records. The demo uses a separate `demo:` IndexedDB database. **Reset demo** restores its sample. **Start for real** opens the empty real ledger.
+Open `/demo/` or `/?demo=1`. It loads tutoring income, materials, and travel sample records. The demo uses a separate `demo:` IndexedDB database. **Reset demo** restores its sample. **Start for real** discards demo changes before opening the real ledger.
 
 ## Ledger features
 
-- Transactions with dates, GBP amounts, notes, and optional receipt files
-- Tax-year quarters running from 6 April to 5 April
-- HMRC self-employment form category references
-- CSV and XLSX downloads
-- Passphrase-encrypted backups
-- A local ledger that works offline after the first visit
+- Add, edit, delete, and restore transactions with exact GBP amounts
+- Keep optional JPG, PNG, WebP, or PDF receipt files up to 5 MB
+- Use tax-year quarters running from 6 April to 5 April
+- Check all 15 HMRC self-employment form category references
+- Download CSV or XLSX with seven documented columns
+- Restore passphrase-encrypted backups with transactions and receipts
+- Install a local ledger that works offline after the first visit
 
 Each visitor-facing promise is listed with an executable test in `.factory/claims.json`.
 
@@ -37,7 +38,7 @@ Run every declared claim test from a clean checkout:
 node -e "const c=require('./.factory/claims.json'); for (const x of c) console.log(x.test)"
 ```
 
-Run the printed commands one at a time. Browser tests use Playwright Chromium 1.58.2.
+Run the printed commands one at a time. Browser tests use the pinned Playwright Chromium 1.58.2 release.
 
 Deploy the generated `dist/` directory as a static site. It includes the PWA manifest, service worker, `/privacy/`, `/terms/`, and a designed `404.html`.
 
@@ -45,7 +46,7 @@ Deploy the generated `dist/` directory as a static site. It includes the PWA man
 
 Transactions and receipts stay in this browser. There are no analytics or accounts. Supporter access costs £19 once and adds a badge and backup reminders. Ledger, receipts, backups, and exports remain free. Checkout and verification use Sociobot/Dodo; ledger records are never sent with verification.
 
-Read the [privacy notice](/privacy/) and [terms](/terms/). Generated artwork is original to this product; its prompt and provenance are in `.factory/design.md`.
+Read the [privacy notice](/privacy/) and [terms](/terms/). The artwork prompt and generation provenance are in `.factory/design.md`.
 
 ## License
 

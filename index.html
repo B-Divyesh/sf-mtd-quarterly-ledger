@@ -7,6 +7,7 @@
     <meta name="description" content="Track quarterly income and expenses in your browser for UK sole traders using Making Tax Digital records." />
     <link rel="canonical" href="https://mtd-quarterly-ledger.sociobot.in/" />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mtd-quarterly-ledger.sociobot.in/" />
     <meta property="og:title" content="Quarter sheet — quarterly income and expense ledger" />
     <meta property="og:description" content="Track quarterly income and expenses in your browser for UK sole traders." />
     <meta property="og:image" content="https://mtd-quarterly-ledger.sociobot.in/quarter-sheet-social.png" />
@@ -25,7 +26,7 @@
     <div id="app">
       <header class="site-header">
         <a class="brand" href="/" aria-label="Quarter sheet home"><img src="/icons/mark.svg" width="32" height="32" alt="" /><span>Quarter sheet</span></a>
-        <nav class="site-nav" aria-label="Main navigation"><a href="/demo/">Demo</a><a href="#how-it-works">How it works</a><a href="/privacy/">Privacy</a></nav>
+        <nav class="site-nav" aria-label="Main navigation"><a href="/demo/">Demo</a><a href="/#how-it-works">How it works</a><a href="/privacy/">Privacy</a></nav>
         <div class="header-actions"><span class="storage-note"><i aria-hidden="true"></i>Saved on this device</span><button class="button ghost compact" id="backup-open" type="button">Back up or restore records</button></div>
       </header>
       <div class="connection-banner" id="offline-banner" hidden role="status">You’re offline. Your ledger still works; exports and local backups are available.</div>
@@ -53,7 +54,7 @@
           <button class="button primary" id="add-entry" type="button"><span aria-hidden="true">＋</span> Add transaction</button>
         </section>
 
-        <section aria-labelledby="quarter-heading">
+        <section class="quarter-plan" aria-labelledby="quarter-heading">
           <div class="section-heading">
             <div><p class="plan-ref">Four tax-year quarters</p><h2 id="quarter-heading">Your four MTD quarters</h2></div>
             <p id="tax-year-label" class="section-note"></p>
@@ -84,7 +85,7 @@
         <section class="category-map" aria-labelledby="map-heading">
           <div class="section-heading">
             <div><p class="plan-ref">HMRC category reference</p><h2 id="map-heading">How categories appear in your export</h2></div>
-            <p class="section-note">Based on 2025–26 SA103F, the HMRC self-employment form categories. Check current HMRC guidance if unsure.</p>
+            <p class="section-note">Based on the 2025–26 SA103F, HMRC’s self-employment form. Check current HMRC guidance if unsure.</p>
           </div>
           <details><summary>Open category reference</summary><div id="category-reference" class="category-grid"></div></details>
         </section>
@@ -96,15 +97,16 @@
 
         <section class="support-strip" aria-labelledby="support-heading">
           <div><p class="eyebrow">Support Quarter sheet</p><h2 id="support-heading">Support development for £19</h2><p>Pay £19 once. Get a supporter badge and backup reminders. Ledger, receipts, backups and exports stay free.</p></div>
-          <div class="support-actions"><p id="license-status">No supporter access on this device.</p><a class="button annotation" id="buy-license" href="https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout">Buy supporter access</a><button class="text-button" id="restore-license" type="button">Restore supporter access</button></div>
+          <div class="support-actions"><p id="license-status">No supporter access on this device.</p><a class="button annotation" id="buy-license" href="https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout">Buy supporter access on Sociobot</a><button class="text-button" id="restore-license" type="button">Restore supporter access</button></div>
         </section>
       </main>
-      <footer><p>Quarterly records in your browser. <a href="/privacy/">Privacy</a> explains the generated artwork.</p><nav aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><span>Built by Param Factory · build repair-1</span></nav></footer>
+      <footer><p>Quarterly records in your browser.</p><nav aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><span>Built by Param Factory · v1.0.0 · polish 1</span></nav></footer>
     </div>
 
     <dialog id="entry-dialog" aria-labelledby="entry-dialog-title">
-      <form method="dialog" id="entry-form">
+      <form method="dialog" id="entry-form" novalidate>
         <div class="dialog-head"><div><p class="plan-ref">LEDGER LINE</p><h2 id="entry-dialog-title">Add transaction</h2></div><button class="icon-button" type="button" data-close="entry-dialog" aria-label="Close transaction form">×</button></div>
+        <p class="form-instruction" id="entry-required">Date, amount, and category are required.</p>
         <input type="hidden" id="entry-id" />
         <fieldset><legend>Transaction type</legend><div class="segmented"><label><input type="radio" name="entry-type" value="income" checked /><span>Income</span></label><label><input type="radio" name="entry-type" value="expense" /><span>Expense</span></label></div></fieldset>
         <div class="form-row"><label>Date<input id="entry-date" name="date" type="date" required /></label><label>Amount (£)<input id="entry-amount" name="amount" inputmode="decimal" autocomplete="off" placeholder="0.00" required aria-describedby="amount-help" /><small id="amount-help">Enter a positive amount, for example 48.50.</small></label></div>
@@ -119,17 +121,17 @@
     <dialog id="backup-dialog" aria-labelledby="backup-title">
       <div class="dialog-head"><div><p class="plan-ref">DATA OWNERSHIP</p><h2 id="backup-title">Back up or restore records</h2></div><button class="icon-button" type="button" data-close="backup-dialog" aria-label="Close backup and restore">×</button></div>
       <p>Download an encrypted copy of every tax year and receipt. Keep the passphrase separately—we cannot recover it.</p>
-      <form id="backup-form"><label>Backup passphrase<input id="backup-passphrase" type="password" minlength="10" autocomplete="new-password" required /><small>Use at least 10 characters.</small></label><button class="button primary" type="submit">Download encrypted backup</button></form>
+      <form id="backup-form" novalidate><label>Backup passphrase<input id="backup-passphrase" type="password" minlength="10" autocomplete="new-password" required /><small>Use at least 10 characters.</small></label><button class="button primary" type="submit">Download encrypted backup</button></form>
       <hr />
-      <form id="restore-form"><label>Encrypted backup file<input id="restore-file" type="file" accept=".mtdledger,application/json" required /></label><label>Backup passphrase<input id="restore-passphrase" type="password" autocomplete="current-password" required /></label><p class="warning-note">Restore replaces the ledger currently on this device.</p><button class="button secondary" type="submit">Restore this backup</button></form>
+      <form id="restore-form" novalidate><label>Encrypted backup file<input id="restore-file" type="file" accept=".mtdledger,application/json" required /></label><label>Backup passphrase<input id="restore-passphrase" type="password" autocomplete="current-password" required /></label><p class="warning-note">Restore replaces the ledger currently on this device.</p><button class="button secondary" type="submit">Restore this backup</button></form>
       <div class="form-error" id="backup-error" role="alert"></div>
     </dialog>
 
     <dialog id="license-dialog" aria-labelledby="license-title">
-      <form id="license-form"><div class="dialog-head"><h2 id="license-title">Restore supporter access</h2><button class="icon-button" type="button" data-close="license-dialog" aria-label="Close license form">×</button></div><label>License token<input id="license-token" autocomplete="off" required /></label><div class="form-error" id="license-error" role="alert"></div><div class="dialog-actions"><button class="button ghost" type="button" data-close="license-dialog">Cancel</button><button class="button primary" type="submit">Verify supporter access</button></div></form>
+      <form id="license-form" novalidate><div class="dialog-head"><h2 id="license-title">Restore supporter access</h2><button class="icon-button" type="button" data-close="license-dialog" aria-label="Close license form">×</button></div><label>License token<input id="license-token" autocomplete="off" required /></label><div class="form-error" id="license-error" role="alert"></div><div class="dialog-actions"><button class="button ghost" type="button" data-close="license-dialog">Cancel</button><button class="button primary" type="submit">Verify supporter access</button></div></form>
     </dialog>
 
-    <div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toast-message"></span><button class="text-button" id="toast-action" type="button" aria-label="Toast action" hidden></button></div>
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toast-message"></span><button class="text-button" id="toast-action" type="button" aria-label="Notification action" hidden></button></div>
     <p class="sr-only" id="route-announcement" aria-live="polite"></p>
     <script type="module" src="/src/main.ts"></script>
   </body>

@@ -42,7 +42,7 @@ export const categories: Category[] = [
   { id: 'finance', type: 'expense', label: 'Bank and finance charges', box: 'SA103F box 26', hint: 'Bank, card and other finance charges.' },
   { id: 'bad-debts', type: 'expense', label: 'Bad debts', box: 'SA103F box 27', hint: 'Amounts included in turnover that will not be recovered.' },
   { id: 'professional', type: 'expense', label: 'Legal and professional', box: 'SA103F box 28', hint: 'Accountancy, legal and other professional fees.' },
-  { id: 'other-expense', type: 'expense', label: 'Other business expenses', box: 'SA103F box 29', hint: 'Allowable business expenses not listed above.' }
+  { id: 'other-expense', type: 'expense', label: 'Other business expenses', box: 'SA103F box 29', hint: 'Other business expenses not listed above.' }
 ];
 
 export const categoryById = (id: string) => categories.find((category) => category.id === id);
