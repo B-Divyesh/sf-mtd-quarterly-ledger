@@ -1,35 +1,31 @@
-# Review handoff — adversarial first-read review 2
+# Polish 2 handoff — pending live recheck
 
-## Work completed
+## Repair
 
-- Reviewed live production cold at 390 × 844 and 1440 × 900.
-- Exercised the one-click demo, sample visibility, reset, exit/discard, real/demo storage namespaces, offline reload, and request isolation.
-- Ran every command in `.factory/claims.json` separately from a clean clone.
-- Re-ran unit, build, and full desktop/mobile browser suites.
-- Crawled live links and audited titles, metadata, status codes, route focus/back behavior, console output, axe results, visual identity, copy, claims, and every review-1 finding.
-- Wrote the full result to `.factory/review-2.md`. No product code was modified.
+Commit `72103d0f77ce067978939c9ab2f617b467ef245f` closes every review-1, review-2, and prior low-severity finding. It aligns paid copy with the live one-time $19 USD checkout, adds checked supporter-benefit and no-tax-advice claims, standardizes browser-scoped language, and adds a fully local CSV import flow with mapping, preview, duplicate detection, cancellation, confirmation, demo isolation, and offline use.
 
-## Verdict
+The product remains a static Vite TypeScript offline PWA. Its midnight-blue drafting-sheet visual system is preserved; the import flow uses its existing cyan/cream/red-pencil grammar.
 
-**FAIL — 4 blocking findings, 1 major finding, and 1 minor finding.**
+## Local verification
 
-The primary blocker is a live billing mismatch: product, README, terms, and claim say **£19 once**, while the production Dodo checkout renders **$19.00** and embeds USD currency. The automated price test passes because it does not inspect the checkout outcome. Two visitor promises are also absent from the claim registry, and browser-scoped data is still described inconsistently as device-scoped data.
+- Clean clone `/tmp/mtd-quarterly-ledger-polish2.AQqKer`: `npm ci` passed with 0 vulnerabilities. Every one of the 31 commands declared in `.factory/claims.json` passed independently.
+- `npm test`: 8/8 passed.
+- `npm run build`: passed and emitted `dist/`.
+- `npm run test:e2e -- --workers=1`: 74/74 desktop/mobile tests passed.
+- Local URL verification: no console errors, one h1, `lang=en-GB`, main landmark, 0 missing alt attributes, and 0 unnamed buttons. Playwright Axe found 0 serious/critical issues across home, demo, legal, and 404.
+- Asset budgets: entry app JS 29.02 kB raw / 10.13 kB gzip; CSS 20.21 kB raw / 5.12 kB gzip; font 14.71 kB; mobile illustration 10.33 kB.
 
-## Verification
+## Run locally
 
-Clean clone: `/tmp/mtd-review2-clean.IkL9sV` at `d1e075055835a50765ffecff0ae85f3d2921bad8`.
+```sh
+npm ci
+npm test
+npm run build
+npm run test:e2e -- --workers=1
+```
 
-- `npm ci`: PASS, zero vulnerabilities.
-- All 28 exact claim commands: process PASS; final marker `CLAIMS_COMPLETE=28 FAILURES=0`.
-- `npm test`: PASS, 7/7.
-- `npm run build`: PASS; `dist/` emitted.
-- `npm run test:e2e -- --workers=1`: all 68 tests passed after one Chromium-process crash retried successfully.
-- `/opt/fleet/lib/verify-url.sh`: PASS; no console errors, missing alt attributes, or unnamed buttons.
-- Live home/demo/legal/404 axe: zero serious/critical findings.
-- Live routes: `/`, `/demo/`, `/privacy/`, `/terms/` return 200; unknown path returns designed 404.
-- Link crawl: internal links resolve; external checkout resolves to Dodo but exposes the wrong currency.
-- Live demo: seeded totals visible in the first mobile viewport; reset and discard-on-exit work; offline reload works; no cross-origin demo request observed.
+Run the exact claim commands listed in `.factory/claims.json` individually. Deploy `dist/` as the static site output.
 
-## Work remaining
+## Remaining work
 
-Resolve F-2-1 through F-2-6 in `.factory/review-2.md`, deploy, then repeat the entire adversarial review. Do not accept a passing local `supporter-price` test until it verifies the production checkout amount and currency.
+Push and complete the required cold live check of home, demo, legal routes, 404, offline behavior, and the read-only checkout before accepting the repair. Add the resulting deployment and live evidence below.
