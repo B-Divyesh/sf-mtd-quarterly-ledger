@@ -1,10 +1,10 @@
-# Quarter sheet — polish 3 handoff
+# Quarter sheet — review 4 handoff
 
 ## Outcome
 
-Repair commit `f348489c6c2377aa93d16d3b05a2f4c052b741db` closes every finding in reviews 1–3 and the earlier verification notes. It is pushed to `main` and deployed as the static PWA at <https://mtd-quarterly-ledger.sociobot.in/>.
+Review 4 is a **PASS**. This reviewer round made no product-code changes. The live PWA at <https://mtd-quarterly-ledger.sociobot.in/> remains clear on first read, tryable in one click, and honest about its local-first boundaries.
 
-This round fixes the incomplete 404 route contract, makes all public prices explicitly **US$19**, removes the remaining README storage jargon, and makes copy-audit evidence reproducible in CI. The product retains its blueprint drafting-desk visual identity, offline/local-first architecture, and isolated one-click demo.
+The retained polish-3 detail below describes the implementation under review. Review 4 additionally confirmed cold mobile/desktop first-read clarity, live demo reset/exit isolation, all routes/metadata/focus, all links, copy/claim coverage, and every earlier finding.
 
 ## What changed
 
@@ -36,6 +36,23 @@ To run every declared claim exactly as a verifier does, execute each `test` comm
 - Live cold audit: `evidence/polish-3/live/check.json`; screenshots include [home mobile](evidence/polish-3/live/home/mobile.png), [demo mobile](evidence/polish-3/live/demo/mobile.png), [404 mobile](evidence/polish-3/live/not-found/mobile.png), and [terms mobile](evidence/polish-3/live/legal/terms-mobile.png). It confirms the demo banner/totals, mobile width 390 px with no overflow, US$ terms price, offline demo reload, and status-404 metadata/focus/footer behavior.
 - Live `verify-url.sh` evidence: `evidence/polish-3/live/home/verify.json` shows a 200 response, one h1, main, `en-GB`, zero console errors, zero missing alt attributes, and zero unnamed buttons.
 
+## Review 4 verification
+
+A fresh clone at `/tmp/mtd-review4-clean.8JkngA` ran `npm ci`, then every exact command from `.factory/claims.json` separately. All 31 claim commands passed. A subsequent `npm run test:claims` passed all 37 desktop claim/supporting tests, including offline service-worker reload and network-interception checks. The final Playwright result has status `passed` and no failed tests.
+
+The same clone passed `npm test` (10 tests) and `npm run build` (emitted `dist/`). To repeat the full check:
+
+```sh
+npm ci
+npm test
+npm run build
+npm run test:claims
+npm run test:e2e -- --workers=1
+node scripts/copy-audit.mjs --check
+```
+
+The isolated demo is <https://mtd-quarterly-ledger.sociobot.in/demo/> (also `/?demo=1`). It uses `demo:quarter-sheet-ledger`; Reset reseeds only that namespace and Start for real clears it before opening the real ledger.
+
 ## Known gaps
 
-No acceptance finding or product claim is left unverified. The app deliberately does not claim that a particular accounting or bridging service accepts its exports; users should check their own software’s import requirements.
+None identified by review 4. The product intentionally does not submit to HMRC, provide tax advice, handle VAT/payroll/bank feeds, or promise compatibility with a particular accounting package.
