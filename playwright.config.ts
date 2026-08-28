@@ -5,7 +5,12 @@ export default defineConfig({
   timeout: 30_000,
   workers: 1,
   retries: 1,
-  use: { baseURL: 'http://127.0.0.1:4173', trace: 'retain-on-failure', launchOptions: { args: ['--disable-gpu'] } },
+  use: {
+    baseURL: 'http://127.0.0.1:4173',
+    trace: 'retain-on-failure',
+    channel: 'chromium',
+    launchOptions: { args: ['--disable-gpu'] }
+  },
   webServer: { command: 'npm run build && npm run preview', url: 'http://127.0.0.1:4173', reuseExistingServer: true },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
