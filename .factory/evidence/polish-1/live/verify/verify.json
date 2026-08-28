@@ -1,0 +1,14 @@
+{
+  "url": "https://mtd-quarterly-ledger.sociobot.in",
+  "loadMs": 658,
+  "errors": [],
+  "a11y": {
+    "title": "Quarter sheet — quarterly income and expense ledger",
+    "lang": "en-GB",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 1955
+  }
+}
