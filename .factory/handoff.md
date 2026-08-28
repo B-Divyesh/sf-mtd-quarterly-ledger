@@ -32,6 +32,7 @@ Results:
 - A separate clean clone at `/tmp/mtd-quarterly-ledger-clean.7n2kbX` passed `npm ci`, `npm run build`, `npm test`, and `npm run test:e2e` (42/42). It then ran all 16 commands declared in `.factory/claims.json`, one at a time, with a passing final Playwright result.
 - Production-size build output: initial app JS 22.84 KB (8.38 KB gzip), CSS 18.11 KB (4.83 KB gzip), local font 14.71 KB, mobile hero 10.33 KB, desktop hero 55.39 KB. All are below the static PWA budgets.
 - Static preview returned 200 for `/demo/`; the deployed Azure Static Web Apps configuration now has no navigation fallback, so unknown paths reach the configured 404 response rewrite with status 404.
+- Deployed through `/opt/fleet/lib/deploy-static.sh mtd-quarterly-ledger /work/repo/dist`. Post-deploy `verify-url.sh` passed at `https://mtd-quarterly-ledger.sociobot.in` (HTTP 200, 842 ms load, no console errors, title/lang/one h1/main/alt checks passed). Direct live checks returned `/demo/` 200 and `/definitely-not-a-real-route` 404 with title `Page not found — Quarter sheet`.
 
 ## Run and deploy
 
