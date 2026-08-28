@@ -407,8 +407,15 @@ test('@claim:supporter-price verifies the one-time US$19 production checkout wit
   await page.goto('/demo/');
   await expect(page.getByText('Pay US$19 once.')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Buy supporter access on Sociobot' })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout');
-  const checkout = await request.get('https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout', { maxRedirects: 5, timeout: 30_000 });
-  expect(checkout.status()).toBe(200);
+  const statuses: number[] = [];
+  let checkout = await request.get('https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout', { maxRedirects: 5, timeout: 30_000 });
+  statuses.push(checkout.status());
+  for (let attempt = 1; checkout.status() !== 200 && attempt < 3; attempt += 1) {
+    await page.waitForTimeout(attempt * 750);
+    checkout = await request.get('https://api.sociobot.in/api/v1/products/mtd-quarterly-ledger/checkout', { maxRedirects: 5, timeout: 30_000 });
+    statuses.push(checkout.status());
+  }
+  expect(checkout.status(), `Production checkout responses: ${statuses.join(', ')}`).toBe(200);
   const body = await checkout.text();
   expect(body).toContain('Pay in <!-- -->USD');
   expect(body).toMatch(/\\?"session_type\\?"\s*:\s*\\?"one_time\\?"/);
